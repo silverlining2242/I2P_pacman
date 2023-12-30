@@ -14,8 +14,9 @@ float VOLUME = 1.0;
 extern int map_offset_x;
 extern int map_offset_y;
 extern int block_width, block_height;
-ALLEGRO_SAMPLE* load_audio(const char* filename) {
-	ALLEGRO_SAMPLE* sample = al_load_sample(filename);
+ALLEGRO_SAMPLE *load_audio(const char *filename)
+{
+	ALLEGRO_SAMPLE *sample = al_load_sample(filename);
 	if (!sample)
 		game_abort("failed to load audio: %s", filename);
 	else
@@ -23,29 +24,33 @@ ALLEGRO_SAMPLE* load_audio(const char* filename) {
 	return sample;
 }
 
-ALLEGRO_SAMPLE_ID play_audio(ALLEGRO_SAMPLE* sample, float volume) {
+ALLEGRO_SAMPLE_ID play_audio(ALLEGRO_SAMPLE *sample, float volume)
+{
 	ALLEGRO_SAMPLE_ID id;
 	if (!al_play_sample(sample, volume, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, &id))
 		game_abort("failed to play audio (once)");
 	return id;
 }
 
-ALLEGRO_SAMPLE_ID play_bgm(ALLEGRO_SAMPLE* sample, float volume) {
+ALLEGRO_SAMPLE_ID play_bgm(ALLEGRO_SAMPLE *sample, float volume)
+{
 	ALLEGRO_SAMPLE_ID id;
 	if (!al_play_sample(sample, volume, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &id))
 		game_abort("failed to play audio (bgm)");
 
-		//game_log("played audio (bgm)");
-		return id;
+	// game_log("played audio (bgm)");
+	return id;
 }
 
-void stop_bgm(ALLEGRO_SAMPLE_ID sample) {
+void stop_bgm(ALLEGRO_SAMPLE_ID sample)
+{
 	al_stop_sample(&sample);
-	//game_log("stop audio (bgm)");
+	// game_log("stop audio (bgm)");
 }
 
-ALLEGRO_FONT* load_font(const char* filename, int size) {
-	ALLEGRO_FONT* font = al_load_font(filename, size, 0);
+ALLEGRO_FONT *load_font(const char *filename, int size)
+{
+	ALLEGRO_FONT *font = al_load_font(filename, size, 0);
 	if (!font)
 		game_abort("failed to load font: %s with size %d", filename, size);
 	else
@@ -53,8 +58,9 @@ ALLEGRO_FONT* load_font(const char* filename, int size) {
 	return font;
 }
 
-ALLEGRO_BITMAP* load_bitmap(const char* filename) {
-	ALLEGRO_BITMAP* bmp = al_load_bitmap(filename);
+ALLEGRO_BITMAP *load_bitmap(const char *filename)
+{
+	ALLEGRO_BITMAP *bmp = al_load_bitmap(filename);
 	if (!bmp)
 		game_abort("failed to load image: %s", filename);
 	else
@@ -62,18 +68,19 @@ ALLEGRO_BITMAP* load_bitmap(const char* filename) {
 	return bmp;
 }
 
-ALLEGRO_BITMAP* load_bitmap_resized(const char* filename, int w, int h) {
-	ALLEGRO_BITMAP* loaded_bmp = load_bitmap(filename);
-	ALLEGRO_BITMAP* resized_bmp = al_create_bitmap(w, h);
-	ALLEGRO_BITMAP* prev_target = al_get_target_bitmap();
+ALLEGRO_BITMAP *load_bitmap_resized(const char *filename, int w, int h)
+{
+	ALLEGRO_BITMAP *loaded_bmp = load_bitmap(filename);
+	ALLEGRO_BITMAP *resized_bmp = al_create_bitmap(w, h);
+	ALLEGRO_BITMAP *prev_target = al_get_target_bitmap();
 
 	if (!resized_bmp)
 		game_abort("failed to create bitmap when creating resized image: %s", filename);
 	al_set_target_bitmap(resized_bmp);
 	al_draw_scaled_bitmap(loaded_bmp, 0, 0,
-		al_get_bitmap_width(loaded_bmp),
-		al_get_bitmap_height(loaded_bmp),
-		0, 0, w, h, 0);
+												al_get_bitmap_width(loaded_bmp),
+												al_get_bitmap_height(loaded_bmp),
+												0, 0, w, h, 0);
 	al_set_target_bitmap(prev_target);
 	al_destroy_bitmap(loaded_bmp);
 
@@ -84,20 +91,27 @@ ALLEGRO_BITMAP* load_bitmap_resized(const char* filename, int w, int h) {
 
 // TODO-HACKATHON 3-5: Finish definition of pnt_in_rect
 // Uncomment and fill in the code below.
-/*
-bool pnt_in_rect(int px, int py, RecArea field) {
-	return ???;
-}
-*/
 
-void setRecArea(RecArea* RA, float x, float y, float w, float h) {
+bool pnt_in_rect(int px, int py, RecArea field) //duplicate in 3-4?
+{
+
+	if (px < field.x || field.x + field.w < px)
+		return false;
+	if (py < field.y || field.y + field.h < py)
+		return false;
+	return true;
+}
+
+void setRecArea(RecArea *RA, float x, float y, float w, float h)
+{
 	RA->x = x;
 	RA->y = y;
 	RA->w = w;
 	RA->h = h;
 }
 
-bool RecAreaOverlap(const RecArea *const RA, const RecArea *const RB) {
+bool RecAreaOverlap(const RecArea *const RA, const RecArea *const RB)
+{
 	// Detect if two RecArea is overlapped.
 	// reference: https://stackoverflow.com/questions/21476869/constant-pointer-vs-pointer-to-constant
 	float RA_x2 = RA->x + RA->w;
@@ -108,43 +122,47 @@ bool RecAreaOverlap(const RecArea *const RA, const RecArea *const RB) {
 		return true;
 	return false;
 }
-RecArea getDrawArea(object *obj, uint32_t TOTAL_TICK) {
+RecArea getDrawArea(object *obj, uint32_t TOTAL_TICK)
+{
 	// NOTODO: return the drawing RecArea defined by object and GAME_TICK_CD
 	// To understand why getDrawArea((object*)ghost, ...) works, please read https://stackoverflow.com/questions/524033/how-can-i-simulate-oo-style-polymorphism-in-c.
 	RecArea target;
-		
+
 	target.x = map_offset_x + obj->Coord.x * block_width;
 	target.y = map_offset_y + obj->Coord.y * block_height;
 	target.w = block_width;
 	target.h = block_height;
 
-	switch (obj->preMove) {
-		case UP:
-			target.y += (obj->moveCD) * block_width / TOTAL_TICK;
+	switch (obj->preMove)
+	{
+	case UP:
+		target.y += (obj->moveCD) * block_width / TOTAL_TICK;
 		break;
-		case DOWN:
-			target.y -= (obj->moveCD) * block_width / TOTAL_TICK;
+	case DOWN:
+		target.y -= (obj->moveCD) * block_width / TOTAL_TICK;
 		break;
-		case LEFT:
-			target.x += (obj->moveCD) * block_width / TOTAL_TICK;
+	case LEFT:
+		target.x += (obj->moveCD) * block_width / TOTAL_TICK;
 		break;
-		case RIGHT:
-			target.x -= (obj->moveCD) * block_width / TOTAL_TICK;
+	case RIGHT:
+		target.x -= (obj->moveCD) * block_width / TOTAL_TICK;
 		break;
-		case NONE:
-			break;
-		default:
-			break;
+	case NONE:
+		break;
+	default:
+		break;
 	}
 
-	return target;	
+	return target;
 }
-void printRecAreaInfo(const RecArea* RA) {
+void printRecAreaInfo(const RecArea *RA)
+{
 	// NOTODO
 	game_log("RecArea info: \nx: %f, y: %f, h: %f\n",
-		RA->x, RA->y, RA->w, RA->h);
+					 RA->x, RA->y, RA->w, RA->h);
 }
-void printDirection(const Directions a) {
+void printDirection(const Directions a)
+{
 	// NOTODO
 	switch (a)
 	{
@@ -169,29 +187,32 @@ void printDirection(const Directions a) {
 	}
 }
 
-bool movetime(int speed) {
-	//game_log("%d %d %d", GAME_TICK, GAME_TICK_CD, speed);
-	// NOTODO
+bool movetime(int speed)
+{
+	// game_log("%d %d %d", GAME_TICK, GAME_TICK_CD, speed);
+	//  NOTODO
 	return (GAME_TICK % (GAME_TICK_CD / speed)) == 0;
 }
 
-uint32_t generateRandomNumber(uint32_t a, uint32_t b) {
+uint32_t generateRandomNumber(uint32_t a, uint32_t b)
+{
 	// NOTODO
-	if (b < a) 
+	if (b < a)
 		game_abort("Error in RandomNumber, b is less than a");
-//	srand(time(NULL));
+	//	srand(time(NULL));
 	return rand() % (b - a + 1) + a;
 }
-double generateRandomFloat() {
+double generateRandomFloat()
+{
 	// NOTODO
-//	srand(time(NULL));
+	//	srand(time(NULL));
 	return (double)rand() / RAND_MAX;
 }
 
-bool bernoulliTrail(double p) {
+bool bernoulliTrail(double p)
+{
 	// NOTODO
-	if (p >= 1 || p <= 0) 
+	if (p >= 1 || p <= 0)
 		game_abort("Error range of p = %lf in BernoulliTrail func\n But p should be between 0.0 and 1.0", p);
 	return generateRandomFloat() < p;
-	
 }

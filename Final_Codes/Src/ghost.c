@@ -10,32 +10,33 @@
 // You have to modify cage_grid_{x,y} to corressponding value also.
 // Or you can do some change while loading map (reading .txt file)
 // Make the start position metadata stored with map.txt.
-const int cage_grid_x=22, cage_grid_y=11;
+const int cage_grid_x = 22, cage_grid_y = 11;
 
 /* shared variables. */
 extern uint32_t GAME_TICK;
 extern uint32_t GAME_TICK_CD;
-extern const int block_width,  block_height;
+extern const int block_width, block_height;
 /* Internal variables */
 static const int fix_draw_pixel_offset_x = -3;
 static const int fix_draw_pixel_offset_y = -3;
 static const int draw_region = 30;
 // [ NOTE - speed again ]
-// Again, you see this notaficationd. If you still want to implement something 
-// fancy with speed, objData->moveCD and GAME_TICK, you can first start on 
-// working on animation of ghosts and pacman. // Once you finished the animation 
+// Again, you see this notaficationd. If you still want to implement something
+// fancy with speed, objData->moveCD and GAME_TICK, you can first start on
+// working on animation of ghosts and pacman. // Once you finished the animation
 // part, you will have more understanding on whole mechanism.
 static const int basic_speed = 2;
 
-Ghost* ghost_create(int flag) {
+Ghost *ghost_create(int flag)
+{
 
 	// NOTODO
-	Ghost* ghost = (Ghost*)malloc(sizeof(Ghost));
+	Ghost *ghost = (Ghost *)malloc(sizeof(Ghost));
 	if (!ghost)
 		return NULL;
 
-	ghost->go_in_time = GAME_TICK; 
-	ghost->typeFlag = flag;
+	ghost->go_in_time = GAME_TICK;
+	ghost->typeFlag = flag; // flag is name of Ghost
 	ghost->objData.Size.x = block_width;
 	ghost->objData.Size.y = block_height;
 
@@ -48,8 +49,9 @@ Ghost* ghost_create(int flag) {
 
 	// TODO-GC-ghost: Create other type ghost, load corresponding sprites.
 	// TODO-IF: You may design your own special tracking rules.
-	switch (ghost->typeFlag) {
-	case Blinky:
+	switch (ghost->typeFlag)
+	{
+	case Blinky: // 0 , idx of ghosts
 		ghost->objData.Coord.x = cage_grid_x;
 		ghost->objData.Coord.y = cage_grid_y;
 		ghost->move_sprite = load_bitmap("Assets/ghost_move_red.png");
@@ -70,7 +72,8 @@ Ghost* ghost_create(int flag) {
 	}
 	return ghost;
 }
-void ghost_destory(Ghost* ghost) {
+void ghost_destory(Ghost *ghost)
+{
 	// TODO-GC-memory: free ghost resource
 
 	/*
@@ -79,28 +82,29 @@ void ghost_destory(Ghost* ghost) {
 		free(ghost);
 	*/
 }
-void ghost_draw(Ghost* ghost) {
-	RecArea drawArea = getDrawArea((object*)ghost, GAME_TICK_CD);
+void ghost_draw(Ghost *ghost)
+{
+	RecArea drawArea = getDrawArea((object *)ghost, GAME_TICK_CD);
 
-	//Draw default image
+	// Draw default image
 	al_draw_scaled_bitmap(ghost->move_sprite, 0, 0,
-		16, 16,
-		drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
-		draw_region, draw_region, 0
-	);
+												16, 16,
+												drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
+												draw_region, draw_region, 0);
 
 	// Draw ghost according to its status and use ghost->objData.moveCD value to determine which frame of the animation to draw.
-	// hint: please refer comments in pacman_draw 
+	// hint: please refer comments in pacman_draw
 	// Since ghost has more status, we suggest you finish pacman_draw first. The logic is very similar.
 
 	int bitmap_x_offset = 0;
-	if (ghost->status == FLEE) {
+	if (ghost->status == FLEE)
+	{
 		// TODO-PB-animation: ghost FLEE animation, draw blue flee sprites,
 		//						 while time is running out, alternatively draw blue and white flee sprites.
 		// *draw ghost->flee_sprite
 		/* hint: try to add some function in scene_game.h and scene_game.c that
 			gets the value of `power_up_timer` and `power_up_duration`.
-		*/ 
+		*/
 		/*
 			if (it has run out of 70% of the time of power mode  )
 			{
@@ -110,14 +114,15 @@ void ghost_draw(Ghost* ghost) {
 				}
 				al_draw_scaled_bitmap(...)
 			}
-			else 
+			else
 			{
 				// draw only blue sprite
 				al_draw_scaled_bitmap(...)
 			}
 		*/
 	}
-	else if (ghost->status == GO_IN) {
+	else if (ghost->status == GO_IN)
+	{
 		// TODO-PB-animation: ghost going animation
 		// *draw ghost->dead_sprite
 		/*
@@ -127,7 +132,8 @@ void ghost_draw(Ghost* ghost) {
 			...
 		*/
 	}
-	else {
+	else
+	{
 		// TODO-GC-animation: ghost animation
 		// *draw ghost->move_sprite
 		/*
@@ -138,15 +144,17 @@ void ghost_draw(Ghost* ghost) {
 		}
 		*/
 	}
-
 }
-void ghost_NextMove(Ghost* ghost, Directions next) {
+void ghost_NextMove(Ghost *ghost, Directions next)
+{
 	ghost->objData.nextTryMove = next;
 }
-void printGhostStatus(GhostStatus S) {
+void printGhostStatus(GhostStatus S)
+{
 
-	switch(S){
-	
+	switch (S)
+	{
+
 	case BLOCKED: // stay inside the ghost room
 		game_log("BLOCKED");
 		break;
@@ -167,39 +175,56 @@ void printGhostStatus(GhostStatus S) {
 		break;
 	}
 }
-bool ghost_movable(const Ghost* ghost, const Map* M, Directions targetDirec, bool room) {
+bool ghost_movable(const Ghost *ghost, const Map *M, Directions targetDirec, bool room)
+{
 	// TODO-HACKATHON 2-3: Determine if the current direction is movable.
 	// Basically, this is a ghost version of `pacman_movable`.
 	// So if you have finished (and you should), you can just "copy and paste"
 	// and do some small alternation.
+	int checkx, checky;
+	checkx = ghost->objData.Coord.x;
+	checky = ghost->objData.Coord.y;
 
-	/*
-	... ghost->objData.Coord.x, ... ghost->objData.Coord.y;
-
-	switch (targetDirec) 
+	switch (targetDirec)
 	{
 	case UP:
-		...
+		checky -= 1;
+		break;
 	case DOWN:
-		...
+		checky += 1;
+		break;
 	case LEFT:
-		...
+		checkx -= 1;
+		break;
 	case RIGHT:
-		...
+		checkx += 1;
+		break;
 	default:
 		// for none UP, DOWN, LEFT, RIGHT direction u should return false.
 		return false;
 	}
-
-	if (is_wall_block(M, ..., ...) || (room && is_room_block(M, ..., ...)))
+	// game_log("(%d,%d)\n",checkx,checky);
+	if (is_wall_block(M, checkx, checky) || (room && is_room_block(M, checkx, checky)))
 		return false;
-	*/
 
 	return true;
+	// TODO-HACKATHON 1-2: Determine if the current direction is movable.
+	// That is to say, your pacman shouldn't penetrate 'wall' and 'room'
+	// , where room is reserved for ghost to set up.
+	// 1) For the current direction `targetDirec`, use pre-implemented function
+	// `is_wall_block` and `is_room_block` to check if the block is wall or room. (they are both defined in map.c)
+	// 2) the coordinate data of pacman is stored in pacman->objData.Coord
+	// it is a self-defined pair IntInt type. Trace the code and utilize it.
 
+	//... pacman->objData.Coord.x, ... pacman->objData.Coord.y;
+	
+
+
+	
 }
 
-void ghost_toggle_FLEE(Ghost* ghost, bool setFLEE) {
+void ghost_toggle_FLEE(Ghost *ghost, bool setFLEE)
+{
 	// TODO-PB: change ghosts state when power bean is eaten by pacman.
 	// When pacman eats the power bean, only ghosts who are in state FREEDOM will change to state FLEE.
 	// For those who are not (BLOCK, GO_IN, etc.), they won't change state.
@@ -207,7 +232,7 @@ void ghost_toggle_FLEE(Ghost* ghost, bool setFLEE) {
 	// setFLEE = true => set to FLEE, setFLEE = false => reset to FREEDOM
 	/*
 	if(setFLEE){
-		// set FREEDOM ghost's status to FLEE and make them slow 
+		// set FREEDOM ghost's status to FLEE and make them slow
 		if(... == FREEDOM){
 			...
 			ghost->speed = 1;
@@ -222,10 +247,11 @@ void ghost_toggle_FLEE(Ghost* ghost, bool setFLEE) {
 	*/
 }
 
-void ghost_collided(Ghost* ghost) {
-	if (ghost->status == FLEE) {
+void ghost_collided(Ghost *ghost)
+{
+	if (ghost->status == FLEE)
+	{
 		ghost->status = GO_IN;
 		ghost->speed = 4; // Go back to cage faster
 	}
 }
-
