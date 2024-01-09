@@ -23,14 +23,14 @@ static void ghost_move_script_FREEDOM_random(Ghost *ghost, Map *M)
 	// TODO-HACKATHON 2-4: Uncomment the following code and finish pacman picking random direction.
 	// hint: see generateRandomNumber in utility.h
 
-	static Directions proba[4]; // possible movement
-	int cnt = 0;
-	for (Directions i = 1; i <= 4; i++) // i is directions
-	{
-		if (ghost_movable(ghost, M, i, true)) // room =0 ?
-			proba[cnt++] = i;										// available movable directions
-	}
-	ghost_NextMove(ghost, proba[generateRandomNumber(0, cnt - 1)]);
+	// static Directions proba[4]; // possible movement
+	// int cnt = 0;
+	// for (Directions i = 1; i <= 4; i++) // i is directions
+	// {
+	// 	if (ghost_movable(ghost, M, i, true)) // set true to break out the ghost block B
+	// 		proba[cnt++] = i;										// available movable directions
+	// }
+	// ghost_NextMove(ghost, proba[generateRandomNumber(0, cnt - 1)]); // after iter cnt + 1 so -1 (gen 0 - 3)
 
 	// TODO-GC-random_movement: (Not in Hackathon)
 	// Description:
@@ -40,25 +40,40 @@ static void ghost_move_script_FREEDOM_random(Ghost *ghost, Map *M)
 	// (The code above DO perform walking back and forth.)
 	// Replace the above code by finish followings.
 	// hint: record the previous move, and skip it when adding direction into array proba
-	/*
-	Direction counter_one = RIGHT;
-	switch(ghost->objData.preMove) {
-		case RIGHT:
-			counter_one = LEFT;
-		case ...
+
+	Directions counter_one;					// init with RIGHT
+	switch (ghost->objData.preMove) // preMove(decide to move), the last direct we moved
+	{
+	case RIGHT:						// if last time we go R, next we should not go back L
+		counter_one = LEFT; // counter_one: the last direction we should not go back
+		break;
+	case LEFT:
+		counter_one = RIGHT;
+		break;
+	case UP:
+		counter_one = DOWN;
+		break;
+	case DOWN:
+		counter_one = UP;
+		break;
+	default:
+		counter_one = NONE;
+		break;
 	}
 
 	static Directions proba[4]; // possible movement
 	int cnt = 0;
-	for (Directions i = 1; i <= 4; i++)
-		if (i != counter_one && ghost_movable(...)) 	proba[cnt++] = i;
-	if (cnt >= 1) {
-		ghost_NextMove(ghost, proba[generateRandomNumber(...)]);
+	for (Directions i = 1; i <= 4; i++)													// i is directions
+		if (i != counter_one && ghost_movable(ghost, M, i, true)) // set true to break out the ghost block B
+			proba[cnt++] = i;																				// available movable directions
+	if (cnt >= 1)
+	{
+		ghost_NextMove(ghost, proba[generateRandomNumber(0, cnt - 1)]);
 	}
-	else { // for the dead end case
-		ghost_NextMove(ghost, ...);
+	else
+	{ // for the dead end case, move original back
+		ghost_NextMove(ghost, counter_one);
 	}
-	*/
 }
 
 static void ghost_move_script_FREEDOM_shortest_path(Ghost *ghost, Map *M, Pacman *pman)
@@ -153,7 +168,7 @@ void ghost_move_script_random(Ghost *ghost, Map *M, Pacman *pacman)
 		break;
 	}
 
-	if (ghost_movable(ghost, M, ghost->objData.nextTryMove, false))
+	if (ghost_movable(ghost, M, ghost->objData.nextTryMove, false)) // nextTryMove is for check
 	{
 		ghost->objData.preMove = ghost->objData.nextTryMove;
 		ghost->objData.nextTryMove = NONE;
@@ -161,7 +176,7 @@ void ghost_move_script_random(Ghost *ghost, Map *M, Pacman *pacman)
 	else if (!ghost_movable(ghost, M, ghost->objData.preMove, false))
 		return;
 
-	switch (ghost->objData.preMove)
+	switch (ghost->objData.preMove) // use preMove to decide where to walk
 	{
 	case RIGHT:
 		ghost->objData.Coord.x += 1;

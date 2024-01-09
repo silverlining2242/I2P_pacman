@@ -92,7 +92,7 @@ ALLEGRO_BITMAP *load_bitmap_resized(const char *filename, int w, int h)
 // TODO-HACKATHON 3-5: Finish definition of pnt_in_rect
 // Uncomment and fill in the code below.
 
-bool pnt_in_rect(int px, int py, RecArea field) //duplicate in 3-4?
+bool pnt_in_rect(int px, int py, RecArea field) // duplicate in 3-4?
 {
 
 	if (px < field.x || field.x + field.w < px)
@@ -194,7 +194,7 @@ bool movetime(int speed)
 	return (GAME_TICK % (GAME_TICK_CD / speed)) == 0;
 }
 
-uint32_t generateRandomNumber(uint32_t a, uint32_t b)
+uint32_t generateRandomNumber(uint32_t a, uint32_t b) // in both a, b included range
 {
 	// NOTODO
 	if (b < a)

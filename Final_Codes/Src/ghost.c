@@ -175,7 +175,7 @@ void printGhostStatus(GhostStatus S)
 		break;
 	}
 }
-bool ghost_movable(const Ghost *ghost, const Map *M, Directions targetDirec, bool room)
+bool ghost_movable(const Ghost *ghost, const Map *M, Directions targetDirec, bool disallow_room)
 {
 	// TODO-HACKATHON 2-3: Determine if the current direction is movable.
 	// Basically, this is a ghost version of `pacman_movable`.
@@ -203,8 +203,8 @@ bool ghost_movable(const Ghost *ghost, const Map *M, Directions targetDirec, boo
 		// for none UP, DOWN, LEFT, RIGHT direction u should return false.
 		return false;
 	}
-	// game_log("(%d,%d)\n",checkx,checky);
-	if (is_wall_block(M, checkx, checky) || (room && is_room_block(M, checkx, checky)))
+	// game_log("(%d,%d)\n",checkx,checky); 
+	if (is_wall_block(M, checkx, checky) || (disallow_room && is_room_block(M, checkx, checky)))
 		return false;
 
 	return true;
@@ -217,10 +217,6 @@ bool ghost_movable(const Ghost *ghost, const Map *M, Directions targetDirec, boo
 	// it is a self-defined pair IntInt type. Trace the code and utilize it.
 
 	//... pacman->objData.Coord.x, ... pacman->objData.Coord.y;
-	
-
-
-	
 }
 
 void ghost_toggle_FLEE(Ghost *ghost, bool setFLEE)
