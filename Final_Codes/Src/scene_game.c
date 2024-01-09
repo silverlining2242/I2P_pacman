@@ -52,7 +52,7 @@ static void init(void)
 	// create map
 	basic_map = create_map(NULL);
 	// TODO-GC-read_txt: Create map from .txt file so that you can design your own map!!
-	// basic_map = create_map("Assets/map_nthu.txt");
+	// basic_map = create_map("Assets/map_new1.txt"); //*okay
 	if (!basic_map)
 	{
 		game_abort("error on creating map");
