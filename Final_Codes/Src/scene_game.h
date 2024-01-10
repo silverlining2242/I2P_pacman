@@ -7,9 +7,9 @@
 #include "game.h"
 
 Scene scene_main_create(void);
-/*
-int64_t get_power_up_timer_tick();
-int64_t get_power_up_duration();
-*/
+
+int32_t set_power_up_timer_tick(int mode); // change from get_power_up_timer_tick();
+int32_t get_power_up_duration();
+extern void stop_PACMAN_POWERUPSOUND();
 
 #endif

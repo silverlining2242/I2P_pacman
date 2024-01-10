@@ -6,7 +6,9 @@
 #define GO_OUT_TIME 256
 extern uint32_t GAME_TICK_CD;
 extern uint32_t GAME_TICK;
+extern uint32_t POWERUP_TICK;
 extern ALLEGRO_TIMER *game_tick_timer;
+extern ALLEGRO_TIMER *power_up_tick_timer;
 extern const int cage_grid_x, cage_grid_y;
 
 /* Declare static function prototypes */
@@ -32,7 +34,7 @@ static void ghost_move_script_FREEDOM_random(Ghost *ghost, Map *M)
 	// }
 	// ghost_NextMove(ghost, proba[generateRandomNumber(0, cnt - 1)]); // after iter cnt + 1 so -1 (gen 0 - 3)
 
-	// TODO-GC-random_movement: (Not in Hackathon)
+	// $TODO-GC-random_movement: (Not in Hackathon)
 	// Description:
 	// For red(Blinky) ghost, we ask you to implement an random strategy ghost,
 	// which means moving in random direction.

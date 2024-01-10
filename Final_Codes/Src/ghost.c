@@ -14,6 +14,7 @@ const int cage_grid_x = 22, cage_grid_y = 11;
 
 /* shared variables. */
 extern uint32_t GAME_TICK;
+extern uint32_t POWERUP_TICK;
 extern uint32_t GAME_TICK_CD;
 extern const int block_width, block_height;
 /* Internal variables */

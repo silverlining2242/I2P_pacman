@@ -8,7 +8,7 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_audio.h>
-extern uint32_t GAME_TICK, GAME_TICK_CD;
+extern uint32_t GAME_TICK, GAME_TICK_CD, POWERUP_TICK;
 const int GridSize = 22;
 float VOLUME = 1.0;
 extern int map_offset_x;
@@ -30,6 +30,7 @@ ALLEGRO_SAMPLE_ID play_audio(ALLEGRO_SAMPLE *sample, float volume)
 	if (!al_play_sample(sample, volume, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, &id))
 		game_abort("failed to play audio (once)");
 	return id;
+	// al_play_sample(sample, volume, pan, speed, ALLEGRO_PLAYMODE_ONCE, &sample_id)
 }
 
 ALLEGRO_SAMPLE_ID play_bgm(ALLEGRO_SAMPLE *sample, float volume)

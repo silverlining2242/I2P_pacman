@@ -18,6 +18,7 @@
 /* global variables*/
 extern const uint32_t GAME_TICK_CD;
 extern uint32_t GAME_TICK;
+extern uint32_t POWERUP_TICK;
 extern ALLEGRO_TIMER *game_tick_timer;
 int game_main_Score = 0;
 bool game_over = false;
@@ -51,7 +52,7 @@ static void init(void)
 	game_main_Score = 0;
 	// create map
 	basic_map = create_map(NULL);
-	// TODO-GC-read_txt: Create map from .txt file so that you can design your own map!!
+	// $TODO-GC-read_txt: Create map from .txt file so that you can design your own map!!
 	// basic_map = create_map("Assets/map_new1.txt"); //*okay
 	if (!basic_map)
 	{
@@ -91,6 +92,8 @@ static void init(void)
 	power_up_timer = al_create_timer(1.0f); // 1 tick per second
 	if (!power_up_timer)
 		game_abort("Error on create timer\n");
+	else
+		game_log("power_up_timer created\n");
 	return;
 }
 
@@ -116,11 +119,15 @@ static void checkItem(void)
 	{
 	case '.':
 		pacman_eatItem(pman, '.');
+		break;
 	case 'P':
-		// TODO-GC-PB: ease power bean
-		// pacman_eatItem(...);
+		// $TODO-GC-PB: ease power bean
+		pman->powerUp = true;
+		pacman_eatItem(pman, 'P');
 		// stop and reset power_up_timer value
 		// start the timer
+		POWERUP_TICK = set_power_up_timer_tick(1); // mode 1 to init
+		game_log("power_up_timer start at : %dn", POWERUP_TICK);
 		break;
 	default:
 		break;
@@ -130,18 +137,31 @@ static void checkItem(void)
 	// Be careful, don't erase the wall block.
 	if (basic_map->map[Grid_y][Grid_x] == '.')
 		basic_map->map[Grid_y][Grid_x] = ' ';
+	// PB
+	if (basic_map->map[Grid_y][Grid_x] == 'P')
+		basic_map->map[Grid_y][Grid_x] = ' ';
 }
 static void status_update(void)
 {
 	// TODO-PB: check powerUp duration
-	/*
+
 	if (pman->powerUp)
 	{
 		// Check the value of power_up_timer
-		// If runs out of time reset all relevant variables and ghost's status
-		// hint: ghost_toggle_FLEE
+		POWERUP_TICK = al_get_timer_count(power_up_timer);					 // start from 1 count to 10(included)
+		if (POWERUP_TICK > power_up_duration)												 // when 11 > 10
+		{
+			pman->powerUp = false;
+			game_log(" %d exceed %d, switch powerUP to %d\n", POWERUP_TICK, power_up_duration, pman->powerUp);
+			set_power_up_timer_tick(0); //mode 0 to stop and reset count to 0
+			game_log("powerup_tick: %d\n", POWERUP_TICK);
+			//call function to stop POWERUPSOUND
+			stop_PACMAN_POWERUPSOUND();
+
+			// If runs out of time reset all relevant variables and ghost's status *not done
+			// hint: ghost_toggle_FLEE
+		}
 	}
-	*/
 
 	for (int i = 0; i < GHOST_NUM; i++)
 	{
@@ -340,4 +360,28 @@ Scene scene_main_create(void)
 	// TODO-IF: Register more event callback functions such as keyboard, mouse, ...
 	game_log("Start scene created");
 	return scene;
+}
+
+int32_t set_power_up_timer_tick(int mode) // templaet: get_power_up_timer_tick
+{
+	if (mode == 1)
+	{
+		if (al_get_timer_started(power_up_timer)) // if already start, then stop
+			al_stop_timer(power_up_timer);
+		al_set_timer_count(power_up_timer, 1); // reset timer to 0 and restart
+		al_start_timer(power_up_timer);
+		return al_get_timer_count(power_up_timer); // return the num of ticks, first init is 0
+	}
+	if (mode == 0)
+	{
+		if (al_get_timer_started(power_up_timer)) // if already start, then stop
+			al_stop_timer(power_up_timer);
+		al_set_timer_count(power_up_timer, 0);
+		POWERUP_TICK = 0;
+		return al_get_timer_count(power_up_timer);
+	}
+}
+int32_t get_power_up_duration()
+{
+	return al_get_timer_count(power_up_timer);
 }

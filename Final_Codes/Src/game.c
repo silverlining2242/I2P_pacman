@@ -1,4 +1,4 @@
-//#pragma once
+// #pragma once
 
 // [game.c]
 // define shared variables and deal with allegro5 routines.
@@ -15,7 +15,7 @@
 #include <allegro5/allegro_audio.h>
 #include <allegro5/allegro_acodec.h>
 #include "game.h"
-#include "scene_game.h" 
+#include "scene_game.h"
 #include "scene_menu.h"
 /* global variables*/
 const int FPS = 60;
@@ -24,18 +24,19 @@ const int SCREEN_H = 800;
 const int RESERVE_SAMPLES = 4;
 Scene active_scene;
 bool key_state[ALLEGRO_KEY_MAX];
-bool* mouse_state;
+bool *mouse_state;
 /* Shared variables. */
 int mouse_x, mouse_y;
 uint32_t GAME_TICK = 0;
+uint32_t POWERUP_TICK = 0;
 const uint32_t GAME_TICK_CD = 64;
-ALLEGRO_TIMER* game_tick_timer;
+ALLEGRO_TIMER *game_tick_timer;
 extern bool gameDone;
 
 /* Internal variables. */
-static ALLEGRO_DISPLAY* game_display;
-static ALLEGRO_TIMER* game_update_timer;
-static const char* game_title = "I2P(I)_2021 Final Project Template";
+static ALLEGRO_DISPLAY *game_display;
+static ALLEGRO_TIMER *game_update_timer;
+static const char *game_title = "I2P(I)_2021 Final Project Template";
 
 /* Declare static function prototypes. */
 
@@ -56,9 +57,10 @@ static void game_draw(void);
 // Free the pointers we allocated.
 static void game_destroy(void);
 // Log using va_list.
-static void game_vlog(const char* format, va_list arg);
+static void game_vlog(const char *format, va_list arg);
 
-void game_create() {
+void game_create()
+{
 	// Set random seed for better random outcome.
 	srand(time(NULL));
 
@@ -66,10 +68,9 @@ void game_create() {
 	game_log("Allegro5 initialized");
 	game_init();
 	game_log("Game initialized");
-	
-	
+
 	// Draw the first frame.
-	
+
 	game_draw();
 	game_log("Game start event loop");
 	// This call blocks until the game is finished.
@@ -80,7 +81,8 @@ void game_create() {
 	game_destroy();
 }
 
-static void allegro5_init(void) {
+static void allegro5_init(void)
+{
 	if (!al_init())
 		game_abort("failed to initialize allegro");
 
@@ -130,7 +132,8 @@ static void allegro5_init(void) {
 	game_log("There are total %u supported mouse buttons", m_buttons);
 	// mouse_state[0] will not be used.
 	mouse_state = malloc((m_buttons + 1) * sizeof(bool));
-	if (mouse_state != NULL) {
+	if (mouse_state != NULL)
+	{
 		memset(mouse_state, false, (m_buttons + 1) * sizeof(bool));
 	}
 
@@ -146,45 +149,54 @@ static void allegro5_init(void) {
 	al_start_timer(game_update_timer);
 }
 
-static void game_init(void) {
+static void game_init(void)
+{
 	// Initialize shared variables.
 	shared_init();
 	// First scene
 	game_change_scene(scene_menu_create());
 }
 
-static void game_start_event_loop(void) {
+static void game_start_event_loop(void)
+{
 	ALLEGRO_EVENT event;
 	int redraws = 0;
 	srand(time(NULL));
-	while (!gameDone) {
+	while (!gameDone)
+	{
 		al_wait_for_event(game_event_queue, &event);
-		if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
+		if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+		{
 			// Event for clicking the window close button.
 			game_log("Window close button clicked");
 			gameDone = true;
 		}
-		else if (event.type == ALLEGRO_EVENT_TIMER) {
+		else if (event.type == ALLEGRO_EVENT_TIMER)
+		{
 			// Event for redrawing the display.
 			if (event.timer.source == game_update_timer)
 			{
 				// The redraw timer has ticked.
 				redraws++;
 			}
-			else if(event.timer.source == game_tick_timer){
+			else if (event.timer.source == game_tick_timer)
+			{
 				// The game tick has ticked.
 				GAME_TICK++;
-				if (GAME_TICK >= GAME_TICK_CD) {
+				if (GAME_TICK >= GAME_TICK_CD)
+				{
 					GAME_TICK = 0;
 				}
 				game_update();
 			}
 		}
-		else if (event.type == ALLEGRO_EVENT_KEY_DOWN) {
+		else if (event.type == ALLEGRO_EVENT_KEY_DOWN)
+		{
 			// Event for keyboard key down.
-			 game_log("Key with keycode %d down", event.keyboard.keycode);
+			game_log("Key with keycode %d down", event.keyboard.keycode);
 			key_state[event.keyboard.keycode] = true;
-			if (event.keyboard.keycode == ALLEGRO_KEY_ESCAPE && strcmp(active_scene.name, "Menu") == 0) {
+			if (event.keyboard.keycode == ALLEGRO_KEY_ESCAPE && strcmp(active_scene.name, "Menu") == 0)
+			{
 				game_log("Escape clicked");
 				gameDone = true;
 				continue;
@@ -192,39 +204,45 @@ static void game_start_event_loop(void) {
 			if (active_scene.on_key_down)
 				(*active_scene.on_key_down)(event.keyboard.keycode);
 		}
-		else if (event.type == ALLEGRO_EVENT_KEY_UP) {
+		else if (event.type == ALLEGRO_EVENT_KEY_UP)
+		{
 			// Event for keyboard key up.
-			//game_log("Key with keycode %d up", event.keyboard.keycode);
+			// game_log("Key with keycode %d up", event.keyboard.keycode);
 			key_state[event.keyboard.keycode] = false;
 			if (active_scene.on_key_up)
 				(*active_scene.on_key_up)(event.keyboard.keycode);
 		}
-		else if (event.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) {
+		else if (event.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN)
+		{
 			// Event for mouse key down.
-			//game_log("Mouse button %d down at (%d, %d)", event.mouse.button, event.mouse.x, event.mouse.y);
+			// game_log("Mouse button %d down at (%d, %d)", event.mouse.button, event.mouse.x, event.mouse.y);
 			mouse_state[event.mouse.button] = true;
 			if (active_scene.on_mouse_down)
 				(*active_scene.on_mouse_down)(event.mouse.button, event.mouse.x, event.mouse.y, 0);
 		}
-		else if (event.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
+		else if (event.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
+		{
 			// Event for mouse key up.
-			//game_log("Mouse button %d up at (%d, %d)", event.mouse.button, event.mouse.x, event.mouse.y);
+			// game_log("Mouse button %d up at (%d, %d)", event.mouse.button, event.mouse.x, event.mouse.y);
 			mouse_state[event.mouse.button] = false;
 			if (active_scene.on_mouse_up)
 				(*active_scene.on_mouse_up)(event.mouse.button, event.mouse.x, event.mouse.y, 0);
 		}
-		else if (event.type == ALLEGRO_EVENT_MOUSE_AXES) {
-			if (event.mouse.dx != 0 || event.mouse.dy != 0) {
+		else if (event.type == ALLEGRO_EVENT_MOUSE_AXES)
+		{
+			if (event.mouse.dx != 0 || event.mouse.dy != 0)
+			{
 				// Event for mouse move_script.
-				//game_log("Mouse move_script to (%d, %d)", event.mouse.x, event.mouse.y);
+				// game_log("Mouse move_script to (%d, %d)", event.mouse.x, event.mouse.y);
 				mouse_x = event.mouse.x;
 				mouse_y = event.mouse.y;
 				if (active_scene.on_mouse_move)
 					(*active_scene.on_mouse_move)(0, event.mouse.x, event.mouse.y, 0);
 			}
-			else if (event.mouse.dz != 0) {
+			else if (event.mouse.dz != 0)
+			{
 				// Event for mouse scroll.
-				//game_log("Mouse scroll at (%d, %d) with delta %d", event.mouse.x, event.mouse.y, event.mouse.dz);
+				// game_log("Mouse scroll at (%d, %d) with delta %d", event.mouse.x, event.mouse.y, event.mouse.dz);
 				if (active_scene.on_mouse_scroll)
 					(*active_scene.on_mouse_scroll)(0, event.mouse.x, event.mouse.y, event.mouse.dz);
 			}
@@ -233,7 +251,8 @@ static void game_start_event_loop(void) {
 		// entries inside Scene.
 
 		// Redraw
-		if (redraws > 0 && al_is_event_queue_empty(game_event_queue)) {
+		if (redraws > 0 && al_is_event_queue_empty(game_event_queue))
+		{
 			// if (redraws > 1)
 			// 	game_log("%d frame(s) dropped", redraws - 1);
 			// Update and draw the next frame.
@@ -243,19 +262,22 @@ static void game_start_event_loop(void) {
 	}
 }
 
-static void game_update(void) {
+static void game_update(void)
+{
 	if (active_scene.update)
 		(*active_scene.update)();
 }
 
-static void game_draw(void) {
+static void game_draw(void)
+{
 	al_clear_to_color(al_map_rgb(0, 0, 0));
 	if (active_scene.draw)
 		(*active_scene.draw)();
 	al_flip_display();
 }
 
-static void game_destroy(void) {
+static void game_destroy(void)
+{
 	// Destroy everything you have created.
 	// Free the memories allocated by malloc or allegro functions.
 	// Destroy shared resources.
@@ -267,19 +289,21 @@ static void game_destroy(void) {
 	free(mouse_state);
 }
 
-void game_change_scene(Scene next_scene) {
+void game_change_scene(Scene next_scene)
+{
 	game_log("Change scene from %s to %s",
-		active_scene.name ? active_scene.name : "(unnamed)",
-		next_scene.name ? next_scene.name : "(unnamed)");
+					 active_scene.name ? active_scene.name : "(unnamed)",
+					 next_scene.name ? next_scene.name : "(unnamed)");
 	if (active_scene.destroy)
 		(*active_scene.destroy)();
-	if(game_tick_timer == NULL)
+	if (game_tick_timer == NULL)
 		game_abort("NULL game tick timer!!!");
 	al_stop_timer(game_tick_timer);
 	active_scene = next_scene;
 	if (active_scene.initialize)
 		active_scene.initialize();
-	if (game_tick_timer == NULL) {
+	if (game_tick_timer == NULL)
+	{
 		game_abort("NULL game tick timer!!!");
 	}
 	al_set_timer_count(game_tick_timer, 0);
@@ -292,7 +316,8 @@ void game_change_scene(Scene next_scene) {
 // | doesn't affect the game.                                        |
 // +=================================================================+
 
-void game_abort(const char* format, ...) {
+void game_abort(const char *format, ...)
+{
 	va_list arg;
 	va_start(arg, format);
 	game_vlog(format, arg);
@@ -304,7 +329,8 @@ void game_abort(const char* format, ...) {
 	exit(1);
 }
 
-void game_log(const char* format, ...) {
+void game_log(const char *format, ...)
+{
 #ifdef LOG_ENABLED
 	va_list arg;
 	va_start(arg, format);
@@ -313,7 +339,8 @@ void game_log(const char* format, ...) {
 #endif
 }
 
-static void game_vlog(const char* format, va_list arg) {
+static void game_vlog(const char *format, va_list arg)
+{
 #ifdef LOG_ENABLED
 	va_list arg_copy;
 	va_copy(arg_copy, arg);
@@ -321,8 +348,9 @@ static void game_vlog(const char* format, va_list arg) {
 	vprintf(format, arg);
 	printf("\n");
 	// Write log to file for later debugging.
-	FILE* pFile = fopen("log.txt", clear_file ? "w" : "a");
-	if (pFile) {
+	FILE *pFile = fopen("log.txt", clear_file ? "w" : "a");
+	if (pFile)
+	{
 		vfprintf(pFile, format, arg_copy);
 		fprintf(pFile, "\n");
 		fclose(pFile);
@@ -331,4 +359,3 @@ static void game_vlog(const char* format, va_list arg) {
 	clear_file = false;
 #endif
 }
-
