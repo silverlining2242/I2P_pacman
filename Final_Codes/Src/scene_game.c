@@ -15,7 +15,7 @@
 // Just modify the GHOST_NUM to 1
 // #define GHOST_NUM 4
 int GHOST_NUM = 4;
-// TODO-GC-ghost: create a least FOUR ghost!
+// $TODO-GC-ghost: create a least FOUR ghost!
 /* global variables*/
 extern const uint32_t GAME_TICK_CD;
 extern uint32_t GAME_TICK;
@@ -282,7 +282,7 @@ static void draw(void)
 
 	al_clear_to_color(al_map_rgb(0, 0, 0));
 
-	// TODO-GC-scoring: Draw scoreboard, something your may need is sprinf();
+	// $TODO-GC-scoring: Draw scoreboard, something your may need is sprinf();
 	char *beans_text = (char *)malloc(sizeof(char) * 35);
 	sprintf(beans_text, "All: %d    Eat: %d", basic_map->beansNum, game_main_Score);
 	al_draw_text(
@@ -342,6 +342,7 @@ static void destroy(void)
 	{
 		ghost_destory(ghosts[i]);
 	}
+	//free(beans_text);
 }
 
 static void on_key_down(int key_code)

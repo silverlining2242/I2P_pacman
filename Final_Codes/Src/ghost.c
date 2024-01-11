@@ -3,7 +3,6 @@
 #include "ghost.h"
 #include "map.h"
 #include "pacman_obj.h"
-
 /* global variables*/
 // [ NOTE ]
 // if you cmhange the map .txt to your own design.
@@ -11,13 +10,14 @@
 // Or you can do some change while loading map (reading .txt file)
 // Make the start position metadata stored with map.txt.
 const int cage_grid_x = 22, cage_grid_y = 11;
-
 /* shared variables. */
 extern uint32_t GAME_TICK;
 extern uint32_t POWERUP_TICK;
 extern uint32_t GAME_TICK_CD;
 extern const int block_width, block_height;
-extern int GHOST_NUM; // #add
+extern int GHOST_NUM;		 // #add
+extern Cage_grid *Cages; // #add
+
 /* Internal variables */
 static const int fix_draw_pixel_offset_x = -3;
 static const int fix_draw_pixel_offset_y = -3;
@@ -49,40 +49,43 @@ Ghost *ghost_create(int flag)
 	ghost->flee_sprite = load_bitmap("Assets/ghost_flee.png");
 	ghost->dead_sprite = load_bitmap("Assets/ghost_dead.png");
 
+	int cage_grid2_x = Cages[flag].cage_grid_x;
+	int cage_grid2_y = Cages[flag].cage_grid_y;
+
 	// TODO-GC-ghost: Create other type ghost, load corresponding sprites.
 	// TODO-IF: You may design your own special tracking rules.
 	switch (ghost->typeFlag)
 	{
-	case Blinky: // 0 , idx of ghosts
-		ghost->objData.Coord.x = cage_grid_x;
-		ghost->objData.Coord.y = cage_grid_y;
+	case Blinky:														 // 0 , idx of ghosts
+		ghost->objData.Coord.x = cage_grid2_x; // cage_grid_x
+		ghost->objData.Coord.y = cage_grid2_y;
 		ghost->move_sprite = load_bitmap("Assets/ghost_move_red.png");
 		ghost->move_script = &ghost_move_script_random;
 		break;
 	case Pinky:
 		// *load move script of shortest_path
-		ghost->objData.Coord.x = cage_grid_x;
-		ghost->objData.Coord.y = cage_grid_y;
+		ghost->objData.Coord.x = cage_grid2_x;
+		ghost->objData.Coord.y = cage_grid2_y;
 		ghost->move_sprite = load_bitmap("Assets/ghost_move_pink.png");
 		ghost->move_script = &ghost_move_script_shortest_path;
 		break;
 	case Inky: // Blue
 		// *load move script of shortest_path
-		ghost->objData.Coord.x = cage_grid_x;
-		ghost->objData.Coord.y = cage_grid_y;
+		ghost->objData.Coord.x = cage_grid2_x;
+		ghost->objData.Coord.y = cage_grid2_y;
 		ghost->move_sprite = load_bitmap("Assets/ghost_move_blue.png");
 		ghost->move_script = &ghost_move_script_shortest_path;
 		break;
 	case Clyde:
 		// *load move script of shortest_path
-		ghost->objData.Coord.x = cage_grid_x;
-		ghost->objData.Coord.y = cage_grid_y;
+		ghost->objData.Coord.x = cage_grid2_x;
+		ghost->objData.Coord.y = cage_grid2_y;
 		ghost->move_sprite = load_bitmap("Assets/ghost_move_orange.png");
 		ghost->move_script = &ghost_move_script_shortest_path;
 		break;
 	default:
-		ghost->objData.Coord.x = cage_grid_x;
-		ghost->objData.Coord.y = cage_grid_y;
+		ghost->objData.Coord.x = cage_grid2_x;
+		ghost->objData.Coord.y = cage_grid2_y;
 		ghost->move_sprite = load_bitmap("Assets/ghost_move_red.png");
 		ghost->move_script = &ghost_move_script_random;
 		break;
@@ -102,11 +105,6 @@ void ghost_destory(Ghost *ghost)
 	al_destroy_bitmap(ghost->flee_sprite);
 	al_destroy_bitmap(ghost->move_sprite);
 	free(ghost);
-	// for(int i = 0; i < GHOST_NUM; i++)
-	// {
-	// 	if(ghost[i])
-	// 		free(ghost[i]);
-	// }
 }
 void ghost_draw(Ghost *ghost) // func to draw single ghost
 {
@@ -193,7 +191,7 @@ void ghost_draw(Ghost *ghost) // func to draw single ghost
 	}
 	else
 	{
-		// TODO-GC-animation: ghost animation
+		// $TODO-GC-animation: ghost animation
 		// *draw ghost->move_sprite
 		if (((ghost->objData.moveCD >> 4) & 1) == 0)
 			bitmap_x_offset = 0; // when CD: even
