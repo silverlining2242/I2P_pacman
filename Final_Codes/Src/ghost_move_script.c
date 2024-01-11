@@ -11,6 +11,7 @@ extern ALLEGRO_TIMER *game_tick_timer;
 extern ALLEGRO_TIMER *power_up_tick_timer;
 extern const int cage_grid_x, cage_grid_y;
 
+
 /* Declare static function prototypes */
 // static function reference: https://stackoverflow.com/questions/558122/what-is-a-static-function-in-c
 static void ghost_move_script_FREEDOM_random(Ghost *ghost, Map *M);

@@ -8,7 +8,7 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_audio.h>
-extern uint32_t GAME_TICK, GAME_TICK_CD, POWERUP_TICK;
+extern uint32_t GAME_TICK, GAME_TICK_CD, POWERUP_TICK, PMANDIE_TICK;
 const int GridSize = 22;
 float VOLUME = 1.0;
 extern int map_offset_x;
@@ -137,7 +137,7 @@ RecArea getDrawArea(object *obj, uint32_t TOTAL_TICK)
 	switch (obj->preMove)
 	{
 	case UP:
-		target.y += (obj->moveCD) * block_width / TOTAL_TICK;
+		target.y += (obj->moveCD) * block_width / TOTAL_TICK; // *block_width: trans from corordi to pixel based
 		break;
 	case DOWN:
 		target.y -= (obj->moveCD) * block_width / TOTAL_TICK;

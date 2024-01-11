@@ -68,7 +68,7 @@ Map *create_map(const char *filepath)
 	}
 	else
 	{
-		// TODO-GC-read_txt: use fopen to open a file stream
+		// $TODO-GC-read_txt: use fopen to open a file stream
 		// fopen reference: https://man7.org/linux/man-pages/man3/fopen.3.html
 		// use pFile and fscanf to read from file, just like read from standard input.
 		game_log("%s\n", filepath);
@@ -120,7 +120,7 @@ Map *create_map(const char *filepath)
 			if (filepath == NULL)
 				M->map[i][j] = nthu_map[i][j];
 			else
-				// TODO-GC-read_txt: input the map from file to M->map[row][col]
+				// $TODO-GC-read_txt: input the map from file to M->map[row][col]
 				// '#' -> wall
 				// '.' -> beans
 				// 'B' -> room of ghost
@@ -154,7 +154,7 @@ void delete_map(Map *M)
 {
 	if (!M)
 		return;
-	// TODO-GC-memory: free the dynamic allocated part of Map* M at here;
+	// $TODO-GC-memory: free the dynamic allocated part of Map* M at here;
 
 	if (M->map)
 	{

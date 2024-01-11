@@ -13,18 +13,19 @@
 
 // TODO-HACKATHON 2-0: Create one ghost
 // Just modify the GHOST_NUM to 1
-#define GHOST_NUM 1
+#define GHOST_NUM 4
 // TODO-GC-ghost: create a least FOUR ghost!
 /* global variables*/
 extern const uint32_t GAME_TICK_CD;
 extern uint32_t GAME_TICK;
 extern uint32_t POWERUP_TICK;
+extern uint32_t PMANDIE_TICK;
 extern ALLEGRO_TIMER *game_tick_timer;
 int game_main_Score = 0;
 bool game_over = false;
 
 /* Internal variables*/
-static ALLEGRO_TIMER *power_up_timer;
+static ALLEGRO_TIMER *power_up_timer; // why it static??
 static const int power_up_duration = 10;
 static Pacman *pman;
 static Map *basic_map;
@@ -148,45 +149,49 @@ static void status_update(void)
 	if (pman->powerUp)
 	{
 		// Check the value of power_up_timer
-		POWERUP_TICK = al_get_timer_count(power_up_timer);					 // start from 1 count to 10(included)
-		if (POWERUP_TICK > power_up_duration)												 // when 11 > 10
+		POWERUP_TICK = al_get_timer_count(power_up_timer); // start from 0 count to 10(included)
+		if (POWERUP_TICK >= power_up_duration  )						 // > 10, it start from 0
 		{
 			pman->powerUp = false;
 			game_log(" %d exceed %d, switch powerUP to %d\n", POWERUP_TICK, power_up_duration, pman->powerUp);
-			set_power_up_timer_tick(0); //mode 0 to stop and reset count to 0
+			set_power_up_timer_tick(0); // mode 0 to stop and reset count to 0
 			game_log("powerup_tick: %d\n", POWERUP_TICK);
-			//call function to stop POWERUPSOUND
+			// call function to stop POWERUPSOUND
 			stop_PACMAN_POWERUPSOUND();
 
 			// If runs out of time reset all relevant variables and ghost's status *not done
 			// hint: ghost_toggle_FLEE
 		}
 	}
-
+	// draw pman
+	RecArea pmanArea = getDrawArea((object *)pman, GAME_TICK_CD);
 	for (int i = 0; i < GHOST_NUM; i++)
 	{
+		// draw ghost
+		RecArea ghostArea = getDrawArea((object *)ghosts[i], GAME_TICK_CD);
+		bool isCollide = RecAreaOverlap(&pmanArea, &ghostArea);
 		if (ghosts[i]->status == GO_IN)
 		{
 			continue;
 		}
 		else if (ghosts[i]->status == FREEDOM)
 		{
-			// TODO-GC-game_over: use `getDrawArea(..., GAME_TICK_CD)` and `RecAreaOverlap(..., GAME_TICK_CD)` functions to detect if pacman and ghosts collide with each other.
+			// #TODO-GC-game_over: use `getDrawArea(..., GAME_TICK_CD)` and `RecAreaOverlap(..., GAME_TICK_CD)` functions to detect if pacman and ghosts collide with each other.
 			// And perform corresponding operations.
 			// [NOTE] You should have some if-else branch here if you want to implement power bean mode.
 			// Uncomment Following Code
-			/*
-			if(!cheat_mode and collision of pacman and ghost)
+
+			if (!cheat_mode && isCollide)
 			{
-					game_log("collide with ghost\n");
-					al_rest(1.0);
-					pacman_die();
-					game_over = true;
-					break; // animation shouldn't be trigger twice.
+				game_log("collide with ghost %d\n", i);
+				al_rest(1.0);
+
+				pacman_die();			// play die sound
+				game_over = true; // it will set up timer for death_anim (pman->death_anim_counter)
+				break;						// animation shouldn't be trigger twice.
 			}
-			*/
 		}
-		else if (ghosts[i]->status == FLEE)
+		else if (ghosts[i]->status == FLEE) // ghost eaten by pacman
 		{
 			// TODO-GC-PB: if ghost is collided by pacman, it should go back to the cage immediately and come out after a period.
 			/*
@@ -198,13 +203,13 @@ static void status_update(void)
 		}
 	}
 }
-
+static bool dieAnimDone = false;
 static void update(void)
 {
 
 	if (game_over)
 	{
-		// TODO-GC-game_over: start pman->death_anim_counter and schedule a game-over event (e.g change scene to menu) after Pacman's death animation finished
+		// $TODO-GC-game_over: start pman->death_anim_counter and schedule a game-over event (e.g change scene to menu) after Pacman's death animation finished
 		// hint: refer al_get_timer_started(...), al_get_timer_count(...), al_stop_timer(...), al_rest(...)
 		/*
 			// start the timer if it hasn't been started.
@@ -212,9 +217,33 @@ static void update(void)
 			// stop the timer if counter reach desired time.
 			game_change_scene(...);
 		*/
+		// set timer (pman->death_anim_counter)
+
+		if (!al_get_timer_started(pman->death_anim_counter))
+		{
+			al_start_timer(pman->death_anim_counter);
+		}
+		// pacman die anim stop
+		else
+		{
+			PMANDIE_TICK = al_get_timer_count(pman->death_anim_counter);
+			// Stop the timer and reset count
+			if (PMANDIE_TICK >= 12 - 1)
+			{
+				al_stop_timer(pman->death_anim_counter);
+				al_set_timer_count(pman->death_anim_counter, 0); // reset
+				PMANDIE_TICK = al_get_timer_count(pman->death_anim_counter);
+				game_log("PMANDIE_TICK:%d\n", PMANDIE_TICK); // #if not change scene it will not stop
+				dieAnimDone = true;
+			}
+		}
+		// check change scene
+		if (dieAnimDone)
+			game_change_scene(scene_menu_create());
+
 		return;
 	}
-
+	// regular game update logic
 	step();
 	checkItem();
 	status_update();
@@ -279,6 +308,10 @@ static void printinfo(void)
 static void destroy(void)
 {
 	// TODO-GC-memory: free map array, Pacman and ghosts
+	for (int i = 0; i < GHOST_NUM; i++)
+	{
+		ghost_destory(ghosts[i]);
+	}
 }
 
 static void on_key_down(int key_code)
@@ -368,7 +401,7 @@ int32_t set_power_up_timer_tick(int mode) // templaet: get_power_up_timer_tick
 	{
 		if (al_get_timer_started(power_up_timer)) // if already start, then stop
 			al_stop_timer(power_up_timer);
-		al_set_timer_count(power_up_timer, 1); // reset timer to 0 and restart
+		al_set_timer_count(power_up_timer, 0); // reset timer to 0 and restart
 		al_start_timer(power_up_timer);
 		return al_get_timer_count(power_up_timer); // return the num of ticks, first init is 0
 	}

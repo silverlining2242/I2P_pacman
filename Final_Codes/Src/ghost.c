@@ -17,6 +17,7 @@ extern uint32_t GAME_TICK;
 extern uint32_t POWERUP_TICK;
 extern uint32_t GAME_TICK_CD;
 extern const int block_width, block_height;
+extern GHOST_NUM; // #add
 /* Internal variables */
 static const int fix_draw_pixel_offset_x = -3;
 static const int fix_draw_pixel_offset_y = -3;
@@ -64,6 +65,21 @@ Ghost *ghost_create(int flag)
 		ghost->objData.Coord.y = cage_grid_y;
 		ghost->move_sprite = load_bitmap("Assets/ghost_move_pink.png");
 		ghost->move_script = &ghost_move_script_shortest_path;
+		break;
+	case Inky: // Blue
+		// *load move script of shortest_path
+		ghost->objData.Coord.x = cage_grid_x;
+		ghost->objData.Coord.y = cage_grid_y;
+		ghost->move_sprite = load_bitmap("Assets/ghost_move_blue.png");
+		ghost->move_script = &ghost_move_script_shortest_path;
+		break;
+	case Clyde:
+		// *load move script of shortest_path
+		ghost->objData.Coord.x = cage_grid_x;
+		ghost->objData.Coord.y = cage_grid_y;
+		ghost->move_sprite = load_bitmap("Assets/ghost_move_orange.png");
+		ghost->move_script = &ghost_move_script_shortest_path;
+		break;
 	default:
 		ghost->objData.Coord.x = cage_grid_x;
 		ghost->objData.Coord.y = cage_grid_y;
@@ -82,6 +98,15 @@ void ghost_destory(Ghost *ghost)
 		...
 		free(ghost);
 	*/
+	al_destroy_bitmap(ghost->dead_sprite);
+	al_destroy_bitmap(ghost->flee_sprite);
+	al_destroy_bitmap(ghost->move_sprite);
+	free(ghost);
+	// for(int i = 0; i < GHOST_NUM; i++)
+	// {
+	// 	if(ghost[i])
+	// 		free(ghost[i]);
+	// }
 }
 void ghost_draw(Ghost *ghost)
 {
@@ -93,6 +118,15 @@ void ghost_draw(Ghost *ghost)
 												drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
 												draw_region, draw_region, 0);
 
+	// Draw n ghosts
+	// for (int i = 0; i < GHOST_NUM; i++)
+	// {
+	// 	al_draw_scaled_bitmap(ghost[i].move_sprite,
+	// 												0, 0,
+	// 												16, 16,
+	// 												drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
+	// 												draw_region, draw_region, 0);
+	// }
 	// Draw ghost according to its status and use ghost->objData.moveCD value to determine which frame of the animation to draw.
 	// hint: please refer comments in pacman_draw
 	// Since ghost has more status, we suggest you finish pacman_draw first. The logic is very similar.
@@ -204,7 +238,7 @@ bool ghost_movable(const Ghost *ghost, const Map *M, Directions targetDirec, boo
 		// for none UP, DOWN, LEFT, RIGHT direction u should return false.
 		return false;
 	}
-	// game_log("(%d,%d)\n",checkx,checky); 
+	// game_log("(%d,%d)\n",checkx,checky);
 	if (is_wall_block(M, checkx, checky) || (disallow_room && is_room_block(M, checkx, checky)))
 		return false;
 
