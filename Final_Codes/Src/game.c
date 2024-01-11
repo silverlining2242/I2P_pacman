@@ -156,6 +156,7 @@ static void game_init(void)
 	shared_init();
 	// First scene
 	game_change_scene(scene_menu_create());
+	
 }
 
 static void game_start_event_loop(void)

@@ -24,7 +24,6 @@ extern uint32_t PMANDIE_TICK;
 extern ALLEGRO_TIMER *game_tick_timer;
 int game_main_Score = 0;
 bool game_over = false;
-int normalbeans = 0;
 
 /* Internal variables*/
 static ALLEGRO_TIMER *power_up_timer; // why it static??
@@ -56,8 +55,7 @@ static void init(void)
 	// create map
 	basic_map = create_map(NULL);
 	// $TODO-GC-read_txt: Create map from .txt file so that you can design your own map!!
-	// basic_map = create_map("Assets/map_new1.txt"); //*okay
-	normalbeans = basic_map->beansNum;
+	//basic_map = create_map("Assets/map_new2.txt"); //*okay
 	if (!basic_map)
 	{
 		game_abort("error on creating map");
@@ -122,14 +120,13 @@ static void checkItem(void)
 	switch (basic_map->map[Grid_y][Grid_x]) // it's reverse
 	{
 	case '.':
+		// game_main_Score
+		game_main_Score++;
 		pacman_eatItem(pman, '.');
 		break;
 	case 'P':
-		// normalbeans
-		normalbeans--;
 		// $TODO-GC-PB: ease power bean
 		pman->powerUp = true;
-
 		// eat and play bgm
 		pacman_eatItem(pman, 'P');
 		// stop and reset power_up_timer value
@@ -222,7 +219,7 @@ static void status_update(void)
 		}
 	}
 }
-static bool dieAnimDone = false;
+extern bool dieAnimDone;
 static void update(void)
 {
 
@@ -258,8 +255,17 @@ static void update(void)
 		}
 		// check change scene
 		if (dieAnimDone)
+		{
 			game_change_scene(scene_menu_create());
+			dieAnimDone = false; //back to false for next round
+		}
 
+		return;
+	}
+	//
+	if (game_main_Score >= basic_map->beansNum)
+	{
+		game_change_scene(scene_menu_create());
 		return;
 	}
 	// regular game update logic
@@ -277,14 +283,14 @@ static void draw(void)
 	al_clear_to_color(al_map_rgb(0, 0, 0));
 
 	// TODO-GC-scoring: Draw scoreboard, something your may need is sprinf();
-
-	// al_draw_text(
-	// 		menuFont,
-	// 		al_map_rgb(255, 255, 0),
-	// 		0, 0,
-	// 		ALLEGRO_ALIGN_CENTER,
-	// 		"READY!");
-	//
+	char *beans_text = (char *)malloc(sizeof(char) * 35);
+	sprintf(beans_text, "All: %d    Eat: %d", basic_map->beansNum, game_main_Score);
+	al_draw_text(
+			menuFont,
+			al_map_rgb(255, 255, 0),
+			10, 10,
+			0,
+			beans_text);
 
 	draw_map(basic_map);
 
