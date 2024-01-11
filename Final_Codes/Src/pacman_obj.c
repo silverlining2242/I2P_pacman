@@ -120,7 +120,6 @@ void pacman_draw(Pacman *pman)
 		// $TODO-GC-animation: We have two frames for each direction. You can use the value of pman->objData.moveCD to determine which frame of the animation to draw.
 		// For example, if the value if odd, draw 1st frame. Otherwise, draw 2nd frame.
 		// But this frame rate may be a little bit too high. We can use % 32 and draw 1st frame if value is 0~15, and 2nd frame if value is 16~31.
-
 		if (((pman->objData.moveCD >> 4) & 1) == 0) //(pman->objData.moveCD % 2 == 0) //(pman->objData.moveCD & 1) == 0)
 		{
 			offset = 0; // even
@@ -163,7 +162,7 @@ void pacman_draw(Pacman *pman)
 		// sx, sy: the position from the image file
 		// dx, dy: position in the whole map
 	}
-	else
+	else //die anim
 	{
 		// $TODO-GC-animation: Draw die animation(pman->die_sprite)
 		// hint: instead of using pman->objData.moveCD, use pman->death_anim_counter to create animation.
@@ -171,15 +170,13 @@ void pacman_draw(Pacman *pman)
 		// in struct: pman->death_anim_counter = al_create_timer(1.0f / 8.0f); tick time each 1/8 s (return timer object)
 
 		offset = ((al_get_timer_count(pman->death_anim_counter)) % 12) * 16; // 16 * 192(192/16 = 12)
-		// offset: (iterate idx in die_sprite image each 1/8 s) * 16 (each is 16* 16)
-		if (!offset)
-		{
-			al_draw_scaled_bitmap(pman->die_sprite,
-														offset, 0,																																	// sx, sy
-														16, 16,																																			// sw, sh
-														drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y, // dx, dy
-														draw_region, draw_region, 0);
-		}
+																																				 // offset: (iterate idx in die_sprite image each 1/8 s) * 16 (each is 16* 16)
+
+		al_draw_scaled_bitmap(pman->die_sprite,
+													offset, 0,																																	// sx, sy
+													16, 16,																																			// sw, sh
+													drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y, // dx, dy
+													draw_region, draw_region, 0);
 	}
 }
 void pacman_move(Pacman *pacman, Map *M)
@@ -256,7 +253,7 @@ void pacman_die() // play PACMAN_DEATH_SOUND
 	// $TODO-GC-game_over: play sound of pacman's death! see shared.c
 	// hint: check pacman_eatItem(...) above.
 	stop_bgm(PACMAN_MOVESOUND_ID);
-	PACMAN_MOVESOUND_ID = play_audio(PACMAN_DEATH_SOUND, effect_volume); //play once
+	PACMAN_MOVESOUND_ID = play_audio(PACMAN_DEATH_SOUND, effect_volume); // play once
 }
 
 void stop_PACMAN_POWERUPSOUND() // create function: to used in scene_game.c

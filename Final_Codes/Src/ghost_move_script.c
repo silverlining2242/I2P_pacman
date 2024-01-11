@@ -11,7 +11,6 @@ extern ALLEGRO_TIMER *game_tick_timer;
 extern ALLEGRO_TIMER *power_up_tick_timer;
 extern const int cage_grid_x, cage_grid_y;
 
-
 /* Declare static function prototypes */
 // static function reference: https://stackoverflow.com/questions/558122/what-is-a-static-function-in-c
 static void ghost_move_script_FREEDOM_random(Ghost *ghost, Map *M);
@@ -24,7 +23,7 @@ static void ghost_move_script_FLEE(Ghost *ghost, Map *M, const Pacman *const pac
 static void ghost_move_script_FREEDOM_random(Ghost *ghost, Map *M)
 {
 	// TODO-HACKATHON 2-4: Uncomment the following code and finish pacman picking random direction.
-	// hint: see generateRandomNumber in utility.h
+	// hint: see generateRandomNumber in utility.h (duplicate)
 
 	// static Directions proba[4]; // possible movement
 	// int cnt = 0;
@@ -70,7 +69,7 @@ static void ghost_move_script_FREEDOM_random(Ghost *ghost, Map *M)
 		if (i != counter_one && ghost_movable(ghost, M, i, true)) // set true to break out the ghost block B
 			proba[cnt++] = i;																				// available movable directions
 	if (cnt >= 1)
-	{
+	{ // ghost->objData.nextTryMove = next; random choose available move
 		ghost_NextMove(ghost, proba[generateRandomNumber(0, cnt - 1)]);
 	}
 	else
@@ -113,7 +112,8 @@ static void ghost_move_script_GO_IN(Ghost *ghost, Map *M)
 	// `shortest_path_direc` is a function that returns the direction of shortest path.
 	// Check `map.c` for its detail usage.
 	// For GO_IN state.
-	ghost->objData.nextTryMove = shortest_path_direc(M, ghost->objData.Coord.x, ghost->objData.Coord.y, cage_grid_x, cage_grid_y);
+	ghost->objData.nextTryMove = shortest_path_direc(M, ghost->objData.Coord.x, ghost->objData.Coord.y, cage_grid_x, cage_grid_y); // #need to check ghost_movable(ghost, M, i, true) or not?
+	ghost_NextMove(ghost, ghost->objData.nextTryMove);
 }
 
 static void ghost_move_script_GO_OUT(Ghost *ghost, Map *M)
@@ -130,13 +130,76 @@ static void ghost_move_script_GO_OUT(Ghost *ghost, Map *M)
 
 static void ghost_move_script_FLEE(Ghost *ghost, Map *M, const Pacman *const pacman)
 {
-	Directions shortestDirection = shortest_path_direc(M, ghost->objData.Coord.x, ghost->objData.Coord.y, pacman->objData.Coord.x, pacman->objData.Coord.y);
-	// TODO-PB: escape from pacman
+	// $TODO-PB: escape from pacman
 	// Description:
 	// The concept here is to simulate ghosts running away from pacman while pacman is having power bean ability.
 	// To achieve this, think in this way. We first get the direction to shortest path to pacman, call it K (K is either UP, DOWN, RIGHT or LEFT).
 	// Then we choose other available direction rather than direction K.
 	// In this way, ghost will escape from pacman.
+	// use FREEDOM MODE for testing
+	/**/
+	Directions counter_one;					// init with RIGHT
+	switch (ghost->objData.preMove) // preMove(decide to move), the last direct we moved
+	{
+	case RIGHT:						// if last time we go R, next we should not go back L
+		counter_one = LEFT; // counter_one: the last direction we should not go back
+		break;
+	case LEFT:
+		counter_one = RIGHT;
+		break;
+	case UP:
+		counter_one = DOWN;
+		break;
+	case DOWN:
+		counter_one = UP;
+		break;
+	default:
+		counter_one = NONE;
+		break;
+	}
+	// if pacman move, ghost go opposite, if not go random
+	Directions shortestDirection = shortest_path_direc(M, ghost->objData.Coord.x, ghost->objData.Coord.y, pacman->objData.Coord.x, pacman->objData.Coord.y);
+	Directions antishortestDirection = shortestDirection;
+	switch (shortestDirection)
+	{
+	case RIGHT:
+		antishortestDirection = LEFT;
+		break;
+	case LEFT:
+		antishortestDirection = RIGHT;
+		break;
+	case UP:
+		antishortestDirection = DOWN;
+		break;
+	case DOWN:
+		antishortestDirection = UP;
+		break;
+	default:
+		break;
+	}
+	if (ghost_movable(ghost, M, antishortestDirection, true))
+		ghost_NextMove(ghost, antishortestDirection); // ghost->objData.nextTryMove is updated to the direction
+	else																						// if it's wall change to random directions beside shortestD
+	{
+		static Directions proba[4];
+		proba[0] = shortestDirection;
+		int cnt = 1;																																					// start from 1
+		for (Directions i = 1; i <= 4; i++)																										// i is directions
+			if (i != counter_one && i != shortestDirection && ghost_movable(ghost, M, i, true)) // set true to break out the ghost block B
+				proba[cnt++] = i;																																	// available movable directions
+		if (cnt >= 2 ) // beside contest and short has two choice
+		{ // ghost->objData.nextTryMove = next; random choose available move
+			ghost_NextMove(ghost, proba[generateRandomNumber(1, cnt - 1)]);
+		}
+		else if (cnt == 1 && ghost_movable(ghost, M, shortestDirection, true))
+		{ // for the dead end case, move original back
+			ghost_NextMove(ghost, proba[0]);
+		}
+		else
+		{
+			ghost_NextMove(ghost, counter_one);
+		}
+	}
 }
 
 void ghost_move_script_random(Ghost *ghost, Map *M, Pacman *pacman)

@@ -13,7 +13,8 @@
 
 // TODO-HACKATHON 2-0: Create one ghost
 // Just modify the GHOST_NUM to 1
-#define GHOST_NUM 4
+// #define GHOST_NUM 4
+int GHOST_NUM = 4;
 // TODO-GC-ghost: create a least FOUR ghost!
 /* global variables*/
 extern const uint32_t GAME_TICK_CD;
@@ -23,6 +24,7 @@ extern uint32_t PMANDIE_TICK;
 extern ALLEGRO_TIMER *game_tick_timer;
 int game_main_Score = 0;
 bool game_over = false;
+int normalbeans = 0;
 
 /* Internal variables*/
 static ALLEGRO_TIMER *power_up_timer; // why it static??
@@ -55,6 +57,7 @@ static void init(void)
 	basic_map = create_map(NULL);
 	// $TODO-GC-read_txt: Create map from .txt file so that you can design your own map!!
 	// basic_map = create_map("Assets/map_new1.txt"); //*okay
+	normalbeans = basic_map->beansNum;
 	if (!basic_map)
 	{
 		game_abort("error on creating map");
@@ -122,8 +125,12 @@ static void checkItem(void)
 		pacman_eatItem(pman, '.');
 		break;
 	case 'P':
+		// normalbeans
+		normalbeans--;
 		// $TODO-GC-PB: ease power bean
 		pman->powerUp = true;
+
+		// eat and play bgm
 		pacman_eatItem(pman, 'P');
 		// stop and reset power_up_timer value
 		// start the timer
@@ -144,13 +151,20 @@ static void checkItem(void)
 }
 static void status_update(void)
 {
-	// TODO-PB: check powerUp duration
+	// $TODO-PB: check powerUp duration
 
 	if (pman->powerUp)
 	{
+		// change ghost status
+		for (int i = 0; i < GHOST_NUM; i++)
+		{
+			// bool setFLEE = (ghosts[i]->status == FLEE) ? true : false;
+			ghost_toggle_FLEE(ghosts[i], true);
+		}
 		// Check the value of power_up_timer
 		POWERUP_TICK = al_get_timer_count(power_up_timer); // start from 0 count to 10(included)
-		if (POWERUP_TICK >= power_up_duration  )						 // > 10, it start from 0
+
+		if (POWERUP_TICK >= power_up_duration) // PB end >= 10, it start from 0
 		{
 			pman->powerUp = false;
 			game_log(" %d exceed %d, switch powerUP to %d\n", POWERUP_TICK, power_up_duration, pman->powerUp);
@@ -159,11 +173,17 @@ static void status_update(void)
 			// call function to stop POWERUPSOUND
 			stop_PACMAN_POWERUPSOUND();
 
-			// If runs out of time reset all relevant variables and ghost's status *not done
-			// hint: ghost_toggle_FLEE
+			// If runs out of time reset all relevant variables and ghost's status back to FREEDOM
+			for (int i = 0; i < GHOST_NUM; i++)
+			{
+				// bool setFLEE = (ghosts[i]->status == FREEDOM) ? true : false;
+				ghost_toggle_FLEE(ghosts[i], false);
+			}
 		}
+		// hint: ghost_toggle_FLEE
+		// ghost status to FLEE
 	}
-	// draw pman
+	// draw pmanArea for check collide
 	RecArea pmanArea = getDrawArea((object *)pman, GAME_TICK_CD);
 	for (int i = 0; i < GHOST_NUM; i++)
 	{
@@ -193,13 +213,12 @@ static void status_update(void)
 		}
 		else if (ghosts[i]->status == FLEE) // ghost eaten by pacman
 		{
-			// TODO-GC-PB: if ghost is collided by pacman, it should go back to the cage immediately and come out after a period.
-			/*
-			if(!cheat_mode and collision of pacman and ghost)
+			// $TODO-GC-PB: if ghost is collided by pacman, it should go back to the cage immediately and come out after a period.
+
+			if (!cheat_mode && isCollide)
 			{
-				ghost_collided(...)
+				ghost_collided(ghosts[i]); // pacman eat ghost, change ghost status to GO_IN
 			}
-			*/
 		}
 	}
 }
@@ -258,9 +277,14 @@ static void draw(void)
 	al_clear_to_color(al_map_rgb(0, 0, 0));
 
 	// TODO-GC-scoring: Draw scoreboard, something your may need is sprinf();
-	/*
-		al_draw_text(...);
-	*/
+
+	// al_draw_text(
+	// 		menuFont,
+	// 		al_map_rgb(255, 255, 0),
+	// 		0, 0,
+	// 		ALLEGRO_ALIGN_CENTER,
+	// 		"READY!");
+	//
 
 	draw_map(basic_map);
 

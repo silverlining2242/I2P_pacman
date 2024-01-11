@@ -6,7 +6,7 @@
 
 /* global variables*/
 // [ NOTE ]
-// if you change the map .txt to your own design.
+// if you cmhange the map .txt to your own design.
 // You have to modify cage_grid_{x,y} to corressponding value also.
 // Or you can do some change while loading map (reading .txt file)
 // Make the start position metadata stored with map.txt.
@@ -17,7 +17,7 @@ extern uint32_t GAME_TICK;
 extern uint32_t POWERUP_TICK;
 extern uint32_t GAME_TICK_CD;
 extern const int block_width, block_height;
-extern GHOST_NUM; // #add
+extern int GHOST_NUM; // #add
 /* Internal variables */
 static const int fix_draw_pixel_offset_x = -3;
 static const int fix_draw_pixel_offset_y = -3;
@@ -108,78 +108,124 @@ void ghost_destory(Ghost *ghost)
 	// 		free(ghost[i]);
 	// }
 }
-void ghost_draw(Ghost *ghost)
+void ghost_draw(Ghost *ghost) // func to draw single ghost
 {
 	RecArea drawArea = getDrawArea((object *)ghost, GAME_TICK_CD);
 
-	// Draw default image
-	al_draw_scaled_bitmap(ghost->move_sprite, 0, 0,
-												16, 16,
-												drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
-												draw_region, draw_region, 0);
+	// #Draw default image //duplicate
+	// al_draw_scaled_bitmap(ghost->move_sprite, 0, 0,
+	// 											16, 16,
+	// 											drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
+	// 											draw_region, draw_region, 0);
 
-	// Draw n ghosts
-	// for (int i = 0; i < GHOST_NUM; i++)
-	// {
-	// 	al_draw_scaled_bitmap(ghost[i].move_sprite,
-	// 												0, 0,
-	// 												16, 16,
-	// 												drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
-	// 												draw_region, draw_region, 0);
-	// }
 	// Draw ghost according to its status and use ghost->objData.moveCD value to determine which frame of the animation to draw.
 	// hint: please refer comments in pacman_draw
 	// Since ghost has more status, we suggest you finish pacman_draw first. The logic is very similar.
 
 	int bitmap_x_offset = 0;
+
 	if (ghost->status == FLEE)
 	{
-		// TODO-PB-animation: ghost FLEE animation, draw blue flee sprites,
+		// $TODO-PB-animation: ghost FLEE animation, draw blue flee sprites,
 		//						 while time is running out, alternatively draw blue and white flee sprites.
 		// *draw ghost->flee_sprite
 		/* hint: try to add some function in scene_game.h and scene_game.c that
 			gets the value of `power_up_timer` and `power_up_duration`.
 		*/
-		/*
-			if (it has run out of 70% of the time of power mode  )
-			{
-				// alternately draw blue and white sprites
-				if (ghost->objData.moveCD >> 4)& 1) {
-					bitmap_x_offset = ...;
-				}
-				al_draw_scaled_bitmap(...)
-			}
+		// changed speed in toggle, so need to adjust / 2 accordingly, or it won't move during draw
+		if (((ghost->objData.moveCD >> 3) & 1) == 0) // change based on speed
+			bitmap_x_offset = 0;											 // when CD: even
+		else
+			bitmap_x_offset = 16; // when CD: odd
+
+		if (POWERUP_TICK >= 7) // it has run out of 70 % of the time of power mode)//blink blue white
+		{
+			// alternately draw blue and white sprites
+			// game_log("about to end PB: %d\n",POWERUP_TICK);
+			if (((ghost->objData.moveCD >> 4) & 1) == 0) // flick quicker so set >>4
+				bitmap_x_offset += 0;
 			else
-			{
-				// draw only blue sprite
-				al_draw_scaled_bitmap(...)
-			}
-		*/
+				bitmap_x_offset += 32;
+			al_draw_scaled_bitmap(ghost->flee_sprite,
+														bitmap_x_offset, 0,
+														16, 16,
+														drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
+														draw_region, draw_region, 0);
+		}
+		else // only blue
+		{
+			// draw only blue sprite
+			al_draw_scaled_bitmap(ghost->flee_sprite,
+														bitmap_x_offset, 0,
+														16, 16,
+														drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y,
+														draw_region, draw_region, 0);
+		}
 	}
+
 	else if (ghost->status == GO_IN)
 	{
-		// TODO-PB-animation: ghost going animation
+		// $TODO-PB-animation: ghost going animation
 		// *draw ghost->dead_sprite
-		/*
-		switch (ghost->objData.facing)
+		switch (ghost->objData.facing) // no leg move, so remove odd/ even
 		{
+		case RIGHT:
+			bitmap_x_offset += 0;
+			break;
 		case LEFT:
-			...
-		*/
+			bitmap_x_offset += 16;
+			break;
+		case UP:
+			bitmap_x_offset += 32;
+			break;
+		case DOWN:
+			bitmap_x_offset += 48;
+			break;
+		default:
+			bitmap_x_offset += 0;
+			break;
+		}
+		al_draw_scaled_bitmap(ghost->dead_sprite,
+													bitmap_x_offset, 0,																													// sx, sy
+													16, 16,																																			// sw, sh
+													drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y, // dx, dy
+													draw_region, draw_region, 0);
 	}
 	else
 	{
 		// TODO-GC-animation: ghost animation
 		// *draw ghost->move_sprite
-		/*
+		if (((ghost->objData.moveCD >> 4) & 1) == 0)
+			bitmap_x_offset = 0; // when CD: even
+		else
+			bitmap_x_offset = 16; // when CD: odd
+
 		switch (ghost->objData.facing)
 		{
+		case RIGHT:
+			bitmap_x_offset += 0;
+			break;
 		case LEFT:
-			...
+			bitmap_x_offset += 32;
+			break;
+		case UP:
+			bitmap_x_offset += 64;
+			break;
+		case DOWN:
+			bitmap_x_offset += 96;
+			break;
+		default:
+			bitmap_x_offset += 0;
+			break;
 		}
-		*/
+		al_draw_scaled_bitmap(ghost->move_sprite,
+													bitmap_x_offset, 0,																													// sx, sy
+													16, 16,																																			// sw, sh
+													drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y, // dx, dy
+													draw_region, draw_region, 0);
 	}
 }
+
 void ghost_NextMove(Ghost *ghost, Directions next)
 {
 	ghost->objData.nextTryMove = next;
@@ -256,26 +302,30 @@ bool ghost_movable(const Ghost *ghost, const Map *M, Directions targetDirec, boo
 
 void ghost_toggle_FLEE(Ghost *ghost, bool setFLEE)
 {
-	// TODO-PB: change ghosts state when power bean is eaten by pacman.
+	// $TODO-PB: change ghosts state when power bean is eaten by pacman.
 	// When pacman eats the power bean, only ghosts who are in state FREEDOM will change to state FLEE.
 	// For those who are not (BLOCK, GO_IN, etc.), they won't change state.
 	// Spec above is based on the classic PACMAN game.
 	// setFLEE = true => set to FLEE, setFLEE = false => reset to FREEDOM
-	/*
-	if(setFLEE){
+
+	if (setFLEE)
+	{
 		// set FREEDOM ghost's status to FLEE and make them slow
-		if(... == FREEDOM){
-			...
-			ghost->speed = 1;
+		if (ghost->status == FREEDOM)
+		{
+			ghost->status = FLEE;
+			ghost->speed = 1; // should be 1, change to 2 for testing
 		}
-	}else{
-		// set FLEE ghost's status to FREESOME and them down
-		if(... == FLEE){
-			...
+	}
+	else
+	{
+		// set FLEE ghost's status to FREESOME and back to prev speed
+		if (ghost->status == FLEE)
+		{
+			ghost->status = FREEDOM;
 			ghost->speed = 2;
 		}
 	}
-	*/
 }
 
 void ghost_collided(Ghost *ghost)
