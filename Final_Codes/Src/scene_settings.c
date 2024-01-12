@@ -25,12 +25,16 @@
 // inside this scene. They should all have the 'static' prefix.
 /*variables should have static!*/
 static RecArea Rectangle1;
-static int Play1Keys[4];
-static bool isSetPlay1Keys = false;
+static bool editFlag = false;
+static int Inputidx = -1;
+/*to change extern variable */
+extern Play1Keys[4]; // #add in shared.c will be used in scene_game.c
+extern bool isValidPlay1Key;
 
 /* funcs copy from scene_menu.c*/
 static void init()
 {
+	ALLEGRO_EVENT event;
 	// const char button1_image_path[50] = "Assets/settings.png";
 	// const char button2_image_path[50] = "Assets/settings2.png";
 	// btnSettings = button_create(730, 20, 50, 50, button1_image_path, button2_image_path);
@@ -41,7 +45,7 @@ static void init()
 	// stop_bgm(menuBGM);
 	// menuBGM = play_bgm(themeMusic, music_volume);
 }
-static int Play1KeysInput = 0; //use it to track user input times
+
 static void draw(void)
 {
 	al_clear_to_color(al_map_rgb(0, 0, 0));
@@ -59,14 +63,15 @@ static void draw(void)
 	al_draw_rectangle(400, 25, 550, 60, al_map_rgb(255, 255, 255), 3.7); // width 150
 
 	// Draw the set keys
-	for (int i = 0; i < Play1KeysInput; i++)
+	for (int i = 0; i < 4; i++)
 	{
-		// if (i < Play1KeysInput)
-		// {
-			const char *keyName = al_keycode_to_name(Play1Keys[i]);
+		if (Play1Keys[i] != 0)
+		{
+			char *keyName = al_keycode_to_name(Play1Keys[i]);
 			al_draw_text(menuFont, al_map_rgb(255, 255, 255), 405 + (i * 36) + 5, 28, ALLEGRO_ALIGN_LEFT, keyName);
-		// }
+		}
 	}
+
 	// draw image (load first)
 	// drawButton(btnSettings);
 }
@@ -80,40 +85,69 @@ static void on_mouse_move(int a, int mouse_x, int mouse_y, int f)
 
 static void on_mouse_down()
 {
-	if (pnt_in_rect(mouse_x, mouse_y, Rectangle1))
+	if (pnt_in_rect(mouse_x, mouse_y, Rectangle1) && Inputidx < 4)
 	{
-		isSetPlay1Keys = true;
-		Play1KeysInput = 0; //reset for edit
-		game_log("click check start to input keys");
+		editFlag = true;
+		game_log("Start input keys");
 	}
-
-	// if (btnSettings.hovered)
-	// 	game_change_scene(scene_settings_create()); // switch scene
+	else // click outside stop input
+	{
+		editFlag = false;
+	}
 }
 static void on_key_down(int keycode)
 {
-	switch (keycode)
+	if (editFlag)
 	{
-	case ALLEGRO_KEY_Q:
-		game_change_scene(scene_menu_create());
-		break;
-	default:
-		break;
+		switch (keycode)
+		{
+		case ALLEGRO_KEY_ENTER:
+			editFlag = 0;
+			break;
+		case ALLEGRO_KEY_BACKSPACE:
+			// delete
+			if (Inputidx >= 0) //*check boundary
+				Play1Keys[Inputidx--] = 0;
+			break;
+		default:
+			// input
+			if (Inputidx < 3)
+				Play1Keys[++Inputidx] = keycode;
+			break;
+		}
 	}
-	// get customized key
-	if (isSetPlay1Keys && Play1KeysInput < 4)
+	else
 	{
-		Play1Keys[Play1KeysInput++] = keycode; //Play1KeysInput is input times
-		if (Play1KeysInput >= 4)
-			isSetPlay1Keys = false; // stop capture keys input
+		switch (keycode)
+		{
+		case ALLEGRO_KEY_Q: 
+			game_change_scene(scene_menu_create());
+			break;
+		default:
+			break;
+		}
 	}
 }
 
 static void destroy() // copy from scene_menu.c
 {
-	for (int i = 0; i < 4; i++)
-		game_log("keys: %d", Play1Keys[i]);
 	// check
+	for (int i = 0; i < 4; i++)
+		game_log("setting keys: %d", Play1Keys[i]);
+
+	for (int i = 0; i < 4; i++) // before changing scene, we can update valid
+	{
+		if (Play1Keys[i]!=0)
+		{
+			isValidPlay1Key = true;
+		}
+		else
+		{
+			isValidPlay1Key = false;
+			break;
+		}
+	}
+	game_log("key full %d", isValidPlay1Key);
 }
 // The only function that is shared across files.
 Scene scene_settings_create(void)

@@ -24,7 +24,9 @@ extern uint32_t PMANDIE_TICK;
 extern ALLEGRO_TIMER *game_tick_timer;
 int game_main_Score = 0;
 bool game_over = false;
-char *beans_text; //#add
+char *beans_text;						 // #add
+extern int Play1Keys[4];		 // #add from shared.c
+extern bool isValidPlay1Key; // #add from shared.c
 
 /* Internal variables*/
 static ALLEGRO_TIMER *power_up_timer; // why it static??
@@ -355,26 +357,50 @@ static void destroy(void)
 	free(beans_text);
 	// check
 	game_log("scene_game.c destroy() func called\n");
+
+	for (int i = 0; i < 4; i++)
+	{
+		game_log("%d Play1Keys: %d", i, Play1Keys[i]);
+	}
+	game_log("key full %d", isValidPlay1Key);
 }
 
 static void on_key_down(int key_code)
 {
+	if (isValidPlay1Key)
+	{
+		// can't use case Play1Keys[0]: The case labels in a switch statement must be constant expressions known at compile time, but the contents of Play1Keys are determined at runtime.
+		if (key_code == Play1Keys[0])
+			pacman_NextMove(pman, UP);
+		else if (key_code == Play1Keys[2])
+			pacman_NextMove(pman, LEFT);
+		else if (key_code == Play1Keys[1])
+			pacman_NextMove(pman, DOWN);
+		else if (key_code == Play1Keys[3])
+			pacman_NextMove(pman, RIGHT);
+	}
+	else
+	{
+		switch (key_code)
+		{
+		// TODO-HACKATHON 1-1: Use allegro pre-defined enum ALLEGRO_KEY_<KEYNAME> to controll pacman movement
+		// we provided you a function `pacman_NextMove` to set the pacman's next move direction.
+		case ALLEGRO_KEY_W:
+			pacman_NextMove(pman, UP);
+			break;
+		case ALLEGRO_KEY_A:
+			pacman_NextMove(pman, LEFT);
+			break;
+		case ALLEGRO_KEY_S:
+			pacman_NextMove(pman, DOWN);
+			break;
+		case ALLEGRO_KEY_D:
+			pacman_NextMove(pman, RIGHT);
+			break;
+		}
+	}
 	switch (key_code)
 	{
-	// TODO-HACKATHON 1-1: Use allegro pre-defined enum ALLEGRO_KEY_<KEYNAME> to controll pacman movement
-	// we provided you a function `pacman_NextMove` to set the pacman's next move direction.
-	case ALLEGRO_KEY_W:
-		pacman_NextMove(pman, UP);
-		break;
-	case ALLEGRO_KEY_A:
-		pacman_NextMove(pman, LEFT);
-		break;
-	case ALLEGRO_KEY_S:
-		pacman_NextMove(pman, DOWN);
-		break;
-	case ALLEGRO_KEY_D:
-		pacman_NextMove(pman, RIGHT);
-		break;
 	case ALLEGRO_KEY_C:
 		cheat_mode = !cheat_mode;
 		if (cheat_mode)
@@ -389,6 +415,7 @@ static void on_key_down(int key_code)
 		break;
 	}
 }
+
 
 static void on_mouse_down(int btn, int x, int y, int dz)
 {

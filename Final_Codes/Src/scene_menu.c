@@ -18,6 +18,8 @@ static ALLEGRO_BITMAP *gameTitle = NULL;
 static ALLEGRO_SAMPLE_ID menuBGM;
 static int gameTitleW;
 static int gameTitleH;
+/*Variable carries from scene_settings.c*/
+extern Play1Keys;
 
 // [HACKATHON 3]
 // TARGET : use a clickable button to enter setting scene.

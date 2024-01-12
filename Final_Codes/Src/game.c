@@ -203,8 +203,8 @@ static void game_start_event_loop(void)
 				gameDone = true;
 				continue;
 			}
-			if (active_scene.on_key_down)
-				(*active_scene.on_key_down)(event.keyboard.keycode);
+			if (active_scene.on_key_down) //if there is on_key_down func define
+				(*active_scene.on_key_down)(event.keyboard.keycode); //execute
 		}
 		else if (event.type == ALLEGRO_EVENT_KEY_UP)
 		{

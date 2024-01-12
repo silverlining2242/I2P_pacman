@@ -18,7 +18,9 @@ float music_volume = 0.5;
 float effect_volume = 0.5;
 bool gameDone = false;
 int dieAnimDone = false;
-
+/* self defined shared variable */ //#add
+int Play1Keys[4] = {0};
+bool isValidPlay1Key = false;
 /*
 	A way to accelerate is load assets once.
 	And delete them at the end.
