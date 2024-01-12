@@ -93,11 +93,12 @@ Pacman *pacman_create()
 void pacman_destroy(Pacman *pman)
 {
 	// TODO-GC-memory: free pacman resource
-
+	// image
 	al_destroy_bitmap(pman->move_sprite);
 	al_destroy_bitmap(pman->die_sprite);
+	// timer
 	al_destroy_timer(pman->death_anim_counter);
-	//...
+	// malloc
 	free(pman);
 }
 
@@ -162,7 +163,7 @@ void pacman_draw(Pacman *pman)
 		// sx, sy: the position from the image file
 		// dx, dy: position in the whole map
 	}
-	else //die anim
+	else // die anim
 	{
 		// $TODO-GC-animation: Draw die animation(pman->die_sprite)
 		// hint: instead of using pman->objData.moveCD, use pman->death_anim_counter to create animation.

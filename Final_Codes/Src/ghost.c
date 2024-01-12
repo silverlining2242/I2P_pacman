@@ -101,9 +101,11 @@ void ghost_destory(Ghost *ghost)
 		...
 		free(ghost);
 	*/
+	// image
 	al_destroy_bitmap(ghost->dead_sprite);
 	al_destroy_bitmap(ghost->flee_sprite);
 	al_destroy_bitmap(ghost->move_sprite);
+	// malloc
 	free(ghost);
 }
 void ghost_draw(Ghost *ghost) // func to draw single ghost

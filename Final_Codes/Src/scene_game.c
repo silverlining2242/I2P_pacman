@@ -24,6 +24,7 @@ extern uint32_t PMANDIE_TICK;
 extern ALLEGRO_TIMER *game_tick_timer;
 int game_main_Score = 0;
 bool game_over = false;
+char *beans_text; //#add
 
 /* Internal variables*/
 static ALLEGRO_TIMER *power_up_timer; // why it static??
@@ -55,7 +56,7 @@ static void init(void)
 	// create map
 	basic_map = create_map(NULL);
 	// $TODO-GC-read_txt: Create map from .txt file so that you can design your own map!!
-	//basic_map = create_map("Assets/map_new2.txt"); //*okay
+	// basic_map = create_map("Assets/map_new2.txt"); //*okay
 	if (!basic_map)
 	{
 		game_abort("error on creating map");
@@ -257,7 +258,7 @@ static void update(void)
 		if (dieAnimDone)
 		{
 			game_change_scene(scene_menu_create());
-			dieAnimDone = false; //back to false for next round
+			dieAnimDone = false; // back to false for next round
 		}
 
 		return;
@@ -283,7 +284,7 @@ static void draw(void)
 	al_clear_to_color(al_map_rgb(0, 0, 0));
 
 	// $TODO-GC-scoring: Draw scoreboard, something your may need is sprinf();
-	char *beans_text = (char *)malloc(sizeof(char) * 35);
+	beans_text = (char *)malloc(sizeof(char) * 35);
 	sprintf(beans_text, "All: %d    Eat: %d", basic_map->beansNum, game_main_Score);
 	al_draw_text(
 			menuFont,
@@ -338,11 +339,22 @@ static void printinfo(void)
 static void destroy(void)
 {
 	// TODO-GC-memory: free map array, Pacman and ghosts
+	// pacman
+	pacman_destroy(pman);
+	// ghost
 	for (int i = 0; i < GHOST_NUM; i++)
 	{
-		ghost_destory(ghosts[i]);
+		ghost_destory(ghosts[i]); // func delete each ghost
 	}
-	//free(beans_text);
+	// map
+	delete_map(basic_map);
+	// malloc
+	// free(pman); // don't double free!! comment out
+	// free(basic_map);
+	free(ghosts);
+	free(beans_text);
+	// check
+	game_log("scene_game.c destroy() func called\n");
 }
 
 static void on_key_down(int key_code)

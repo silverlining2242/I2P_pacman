@@ -14,7 +14,7 @@ endif
 #REVISE INCLUDE path if you have installed different version or install path.
 
 DBG = -g -Wall -Wextra -fsanitize=address
-objects= main.o game.o ghost.o ghost_move_script.o map.o pacman_obj.o scene_game.o scene_menu.o scene_menu_object.o scene_settings.o shared.o utility.o
+objects= main.o game.o ghost.o ghost_move_script.o map.o pacman_obj.o scene_game.o scene_menu.o scene_menu_object.o scene_settings.o shared.o utility.o #leakcheck.o
 
 all: pacman 
 
