@@ -194,7 +194,7 @@ static void status_update(void)
 		}
 		else if (ghosts[i]->status == FREEDOM)
 		{
-			// #TODO-GC-game_over: use `getDrawArea(..., GAME_TICK_CD)` and `RecAreaOverlap(..., GAME_TICK_CD)` functions to detect if pacman and ghosts collide with each other.
+			// $TODO-GC-game_over: use `getDrawArea(..., GAME_TICK_CD)` and `RecAreaOverlap(..., GAME_TICK_CD)` functions to detect if pacman and ghosts collide with each other.
 			// And perform corresponding operations.
 			// [NOTE] You should have some if-else branch here if you want to implement power bean mode.
 			// Uncomment Following Code
@@ -338,7 +338,7 @@ static void printinfo(void)
 
 static void destroy(void)
 {
-	// TODO-GC-memory: free map array, Pacman and ghosts
+	// $TODO-GC-memory: free map array, Pacman and ghosts
 	// pacman
 	pacman_destroy(pman);
 	// ghost

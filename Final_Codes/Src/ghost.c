@@ -52,7 +52,7 @@ Ghost *ghost_create(int flag)
 	int cage_grid2_x = Cages[flag].cage_grid_x;
 	int cage_grid2_y = Cages[flag].cage_grid_y;
 
-	// TODO-GC-ghost: Create other type ghost, load corresponding sprites.
+	// $TODO-GC-ghost: Create other type ghost, load corresponding sprites.
 	// TODO-IF: You may design your own special tracking rules.
 	switch (ghost->typeFlag)
 	{
@@ -94,7 +94,7 @@ Ghost *ghost_create(int flag)
 }
 void ghost_destory(Ghost *ghost)
 {
-	// TODO-GC-memory: free ghost resource
+	// $TODO-GC-memory: free ghost resource
 
 	/*
 		al_destory_bitmap(...);

@@ -93,7 +93,7 @@ ALLEGRO_BITMAP *load_bitmap_resized(const char *filename, int w, int h)
 // TODO-HACKATHON 3-5: Finish definition of pnt_in_rect
 // Uncomment and fill in the code below.
 
-bool pnt_in_rect(int px, int py, RecArea field) // duplicate in 3-4?
+bool pnt_in_rect(int px, int py, RecArea field) 
 {
 
 	if (px < field.x || field.x + field.w < px)

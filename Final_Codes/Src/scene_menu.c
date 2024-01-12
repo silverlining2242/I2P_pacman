@@ -34,8 +34,8 @@ static void init()
 
 	// TODO-HACKATHON 3-2: Create button to settings
 	// Uncomment and fill the code below
-	const char button1_image_path[50] = "Assets/settings.png";
-	const char button2_image_path[50] = "Assets/settings2.png";
+	const char button1_image_path[25] = "Assets/settings.png";
+	const char button2_image_path[25] = "Assets/settings2.png";
 	btnSettings = button_create(730, 20, 50, 50, button1_image_path, button2_image_path);
 	// const char* default_image_path, const char* hovered_image_path
 
@@ -73,7 +73,7 @@ static void draw()
 
 	// TODO-HACKATHON 3-3: Draw button
 	// Uncomment and fill the code below
-	drawButton(btnSettings);
+	drawButton(btnSettings); // define in scene_menu_object.c
 }
 
 static void on_mouse_move(int a, int mouse_x, int mouse_y, int f)

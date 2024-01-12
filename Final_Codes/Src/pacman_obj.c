@@ -92,7 +92,7 @@ Pacman *pacman_create()
 
 void pacman_destroy(Pacman *pman)
 {
-	// TODO-GC-memory: free pacman resource
+	// $TODO-GC-memory: free pacman resource
 	// image
 	al_destroy_bitmap(pman->move_sprite);
 	al_destroy_bitmap(pman->die_sprite);
