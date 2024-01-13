@@ -63,7 +63,7 @@ static void init(void)
 	// create map
 	basic_map = create_map(NULL);
 	// $TODO-GC-read_txt: Create map from .txt file so that you can design your own map!!
-	//basic_map = create_map("Assets/map_nthu.txt"); //*okay
+	// basic_map = create_map("Assets/map_nthu.txt"); //*okay
 	if (!basic_map)
 	{
 		game_abort("error on creating map");
@@ -201,6 +201,12 @@ static void status_update(void)
 					ghost_toggle_STOP(ghosts[i], true);
 				wasCM_S = true;
 			}
+			if (CM_K) //press K still valid
+			{
+				for (int i = 0; i < GHOST_NUM; i++)
+					ghost_toggle_GOIN(ghosts[i], true);
+				CM_K = false; // Reset CM_K
+			}
 		}
 		else
 		{
@@ -230,6 +236,20 @@ static void status_update(void)
 		// {
 		// 		for loop to set ghost_toggle_STOP(ghosts[i], false);
 		// }
+	}
+	else // if cheatmode off but there is K, L wipe out
+	{
+		if (wasCM_S || CM_K || CM_S)
+		{
+			for (int i = 0; i < GHOST_NUM; i++)
+			{
+				ghost_toggle_STOP(ghosts[i], false);
+				ghost_toggle_GOIN(ghosts[i], false);
+			}
+			CM_K = false;
+			CM_S = false;
+			wasCM_S = false;
+		}
 	}
 	// draw pmanArea for check collide
 	RecArea pmanArea = getDrawArea((object *)pman, GAME_TICK_CD);

@@ -147,7 +147,7 @@ Map *create_map(const char *filepath)
 				break;
 			case 'B':
 				Cages[cages_idx].cage_grid_x = j;
-				Cages[cages_idx].cage_grid_y = i + 1; // default map and import is diff, if use default +1 else not
+				Cages[cages_idx].cage_grid_y = i; // default map and import is diff, if use default +1 else not
 				cages_idx++;
 				break;
 			case '0':

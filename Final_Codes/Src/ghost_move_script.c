@@ -90,13 +90,13 @@ static void ghost_move_script_BLOCKED(Ghost *ghost, Map *M)
 	switch (ghost->objData.preMove)
 	{
 	case UP:
-		if (ghost->objData.Coord.y == 10)
+		if (ghost->objData.Coord.y == cage_grid_x ) //#change 10
 			ghost_NextMove(ghost, DOWN);
 		else
 			ghost_NextMove(ghost, UP);
 		break;
 	case DOWN:
-		if (ghost->objData.Coord.y == 12)
+		if (ghost->objData.Coord.y == cage_grid_y ) //12
 			ghost_NextMove(ghost, UP);
 		else
 			ghost_NextMove(ghost, DOWN);
