@@ -28,6 +28,9 @@ extern bool game_over;
 extern float effect_volume;
 extern Pair_IntInt *pmanP; // #add
 extern bool CM_L;					 // #add
+extern bool P2block;			 // TODO-MC
+extern Pair_IntInt pman2Cordi;					// TODO-MC
+extern int GHOST_NUM;										// #add TODO-MC
 
 /* Declare static function */
 static bool pacman_movable(const Pacman *pacman, const Map *M, Directions targetDirec)
@@ -45,9 +48,9 @@ static bool pacman_movable(const Pacman *pacman, const Map *M, Directions target
 	checkx = pacman->objData.Coord.x;
 	checky = pacman->objData.Coord.y;
 
-	switch (targetDirec)
+	switch (targetDirec) //use nextTry to check if movable
 	{
-	case UP:
+	case UP: //check pman above position is movable?
 		checky -= 1;
 		break;
 	case DOWN:
@@ -64,14 +67,21 @@ static bool pacman_movable(const Pacman *pacman, const Map *M, Directions target
 		return false;
 	}
 	// game_log("(%d,%d)\n",checkx,checky);
+	// TODO-MC
+
 	if (!CM_L) // #TODO-CM
 	{
 		if (is_wall_block(M, checkx, checky) || is_room_block(M, checkx, checky))
 			return false;
 	}
-	else
+	else // TODO-CM: pacman can pass the wall
 	{
 		if (is_room_block(M, checkx, checky))
+			return false;
+	}
+	if(P2block)
+	{
+		if (is_wall_block(M, checkx, checky) || is_room_block(M, checkx, checky)||(checkx==pman2Cordi.x && checky==pman2Cordi.y))
 			return false;
 	}
 
@@ -85,7 +95,7 @@ Pacman *pacman_create(int num) // change
 	int pman_grid2_y = pmanP[num].y;
 	// Allocate dynamic memory for pman pointer;
 	Pacman *pman = (Pacman *)malloc(sizeof(Pacman));
-	//Pacman *pman2 = (Pacman *)malloc(sizeof(Pacman)); // TODO-MC duplicate
+	// Pacman *pman2 = (Pacman *)malloc(sizeof(Pacman)); // TODO-MC duplicate
 
 	if (!pman)
 		return NULL;
@@ -101,11 +111,17 @@ Pacman *pacman_create(int num) // change
 	pman->death_anim_counter = al_create_timer(1.0f / 8.0f);
 	pman->powerUp = false;
 	/* load sprites */
-	if (num == 1)
+	if (num == 1) // Player 2
+	{
 		pman->move_sprite = load_bitmap("Assets/pacman2_move.png");
+		pman->block_sprite = load_bitmap("Assets/block1.png");
+	}
 	else
+	{
 		pman->move_sprite = load_bitmap("Assets/pacman_move.png");
+	}
 	pman->die_sprite = load_bitmap("Assets/pacman_die.png");
+
 	return pman;
 }
 
@@ -115,16 +131,21 @@ void pacman_destroy(Pacman *pman)
 	// image
 	al_destroy_bitmap(pman->move_sprite);
 	al_destroy_bitmap(pman->die_sprite);
-	// timer
+	// al_destroy_bitmap(pman->block_sprite);
+	//  timer
 	al_destroy_timer(pman->death_anim_counter);
 	// malloc
 	free(pman);
+	
+
 }
 
-void pacman_draw(Pacman *pman)
+void pacman_draw(Pacman *pman) 
 {
+
 	// $TODO-GC-animation: Draw Pacman and animations
 	// hint: use pman->objData.moveCD to determine which frame of the animation to draw
+	
 	RecArea drawArea = getDrawArea((object *)pman, GAME_TICK_CD);
 
 	// Draw default image: this is before animation(duplicate)
@@ -203,14 +224,24 @@ void pacman_draw(Pacman *pman)
 void pacman_draw2(Pacman *pman) // #TODO-MC
 {
 	RecArea drawArea = getDrawArea((object *)pman, GAME_TICK_CD);
+
+	if (P2block)
+	{
+		al_draw_scaled_bitmap(pman->block_sprite,
+													0, 0,																																				// sx, sy
+													16, 16,																																			// sw, sh
+													drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y, // dx, dy
+													draw_region, draw_region, 0);
+		return;
+	}
 	int offset = 0; // sx frame count decide sx position of image
 	if (!game_over)
 	{
-		if (((pman->objData.moveCD >> 5) & 1) == 0) //(pman->objData.moveCD % 2 == 0) //(pman->objData.moveCD & 1) == 0)
+		if (((pman->objData.moveCD >> 4) & 1) == 0) //(pman->objData.moveCD % 2 == 0) //(pman->objData.moveCD & 1) == 0)
 		{
 			offset = 0; // even
 		}
-		else if (((pman->objData.moveCD >> 5) & 1) == 1) //(pman->objData.moveCD % 2 == 1)
+		else if (((pman->objData.moveCD >> 4) & 1) == 1) //(pman->objData.moveCD % 2 == 1)
 		{
 			offset = 16; // odd
 		}
@@ -332,3 +363,5 @@ void stop_PACMAN_POWERUPSOUND() // create function: to used in scene_game.c
 {
 	stop_bgm(PACMAN_MOVESOUND_ID);
 }
+
+

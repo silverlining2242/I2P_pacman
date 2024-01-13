@@ -15,6 +15,7 @@
 // Just modify the GHOST_NUM to 1
 // #define GHOST_NUM 4
 int GHOST_NUM = 4;
+int PMAN_NUM = 2;
 // $TODO-GC-ghost: create a least FOUR ghost!
 /* global variables*/
 extern const uint32_t GAME_TICK_CD;
@@ -32,8 +33,9 @@ extern bool dieAnimDone;		 // #add
 /* Internal variables*/
 static ALLEGRO_TIMER *power_up_timer; // why it static??
 static const int power_up_duration = 10;
-static Pacman *pman;
-static Pacman *pman2; //#change
+static Pacman **pmans; // #change
+// static Pacman *pman;
+// static Pacman *pman2; // #change
 static Map *basic_map;
 static Ghost **ghosts;
 bool debug_mode = false;
@@ -42,6 +44,8 @@ bool CM_K = false; // TODO-CM
 bool CM_S = false;
 bool wasCM_S = false; // #add to improve efficiency to avoid reset normal when CM_S not active
 bool CM_L = false;
+bool P2block = false;		// TODO-MC
+Pair_IntInt pman2Cordi; // TODO-MC
 
 /* Declare static function prototypes */
 static void init(void);
@@ -53,10 +57,13 @@ static void draw(void);
 static void printinfo(void);
 static void destroy(void);
 static void on_key_down(int key_code);
-static void on_key_down2(int key_code); //TODO-MC
+static void on_key_down2(int key_code); // TODO-MC
 static void on_mouse_down(int btn, int x, int y, int dz);
 static void render_init_screen(void);
 static void draw_hitboxes(void);
+
+/*self function defined*/
+Pair_IntInt get_pman2_position(const Pacman *pacman); // TODO-MC
 
 static void init(void)
 {
@@ -70,19 +77,33 @@ static void init(void)
 	{
 		game_abort("error on creating map");
 	}
-	// create pacman
-	pman = pacman_create(0);
-	if (!pman)
+	// // create pacman
+	// pman = pacman_create(0);
+	// if (!pman)
+	// {
+	// 	game_abort("error on creating pacamn\n");
+	// }
+	// // create pacman2 //#add
+	// pman2 = pacman_create(1);
+	// if (!pman2)
+	// 	game_abort("error on creating pacamn2\n");
+	// else
+	// 	game_log("pman2 created");
+	// TODO-MC //create multi pman
+	pmans = (Pacman **)malloc(sizeof(Pacman *) * PMAN_NUM);
+	if (!pmans)
 	{
-		game_abort("error on creating pacamn\n");
+		game_log("Create pacmans failed");
 	}
-	// create pacman2 //#add
-	pman2 = pacman_create(1);
-	if (!pman2)
-		game_abort("error on creating pacamn2\n");
 	else
-		game_log("pman2 created");
-
+	{
+		for (int i = 0; i < PMAN_NUM; i++)
+		{
+			pmans[i] = pacman_create(i);
+			if (!pmans[i])
+				game_abort("error creating pacman");
+		}
+	}
 
 	// allocate ghost memory
 	// TODO-HACKATHON 2-1: Allocate dynamic memory for ghosts array.
@@ -105,6 +126,7 @@ static void init(void)
 				game_abort("error creating ghost\n");
 		}
 	}
+
 	GAME_TICK = 0;
 
 	render_init_screen();
@@ -118,8 +140,13 @@ static void init(void)
 
 static void step(void)
 {
-	if (pman->objData.moveCD > 0)
-		pman->objData.moveCD -= pman->speed;
+	for (int i = 0; i < PMAN_NUM; i++)
+	{
+		if (pmans[i]->objData.moveCD > 0)
+			pmans[i]->objData.moveCD -= pmans[i]->speed;
+	}
+	// if (pman->objData.moveCD > 0)
+	// 	pman->objData.moveCD -= pman->speed;
 	for (int i = 0; i < GHOST_NUM; i++)
 	{
 		// important for movement
@@ -127,9 +154,9 @@ static void step(void)
 			ghosts[i]->objData.moveCD -= ghosts[i]->speed;
 	}
 }
-static void checkItem(void)
+static void checkItem(void) //only for player 1
 {
-	int Grid_x = pman->objData.Coord.x, Grid_y = pman->objData.Coord.y;
+	int Grid_x = pmans[0]->objData.Coord.x, Grid_y = pmans[0]->objData.Coord.y;
 	if (Grid_y >= basic_map->row_num - 1 || Grid_y <= 0 || Grid_x >= basic_map->col_num - 1 || Grid_x <= 0)
 		return;
 	// TODO-HACKATHON 1-3: check which item you are going to eat and use `pacman_eatItem` to deal with it.
@@ -139,13 +166,13 @@ static void checkItem(void)
 	case '.':
 		// game_main_Score
 		game_main_Score++;
-		pacman_eatItem(pman, '.');
+		pacman_eatItem(pmans[0], '.');
 		break;
 	case 'P':
 		// $TODO-GC-PB: ease power bean
-		pman->powerUp = true;
+		pmans[0]->powerUp = true;
 		// eat and play bgm
-		pacman_eatItem(pman, 'P');
+		pacman_eatItem(pmans[0], 'P');
 		// stop and reset power_up_timer value
 		// start the timer
 		POWERUP_TICK = set_power_up_timer_tick(1); // mode 1 to init
@@ -167,7 +194,7 @@ static void status_update(void)
 {
 	// $TODO-PB: check powerUp duration
 
-	if (pman->powerUp)
+	if (pmans[0]->powerUp)
 	{
 		// change ghost status
 		for (int i = 0; i < GHOST_NUM; i++)
@@ -180,8 +207,8 @@ static void status_update(void)
 
 		if (POWERUP_TICK >= power_up_duration) // PB end >= 10, it start from 0
 		{
-			pman->powerUp = false;
-			game_log(" %d exceed %d, switch powerUP to %d\n", POWERUP_TICK, power_up_duration, pman->powerUp);
+			pmans[0]->powerUp = false;
+			game_log(" %d exceed %d, switch powerUP to %d\n", POWERUP_TICK, power_up_duration, pmans[0]->powerUp);
 			set_power_up_timer_tick(0); // mode 0 to stop and reset count to 0
 			game_log("powerup_tick: %d\n", POWERUP_TICK);
 			// call function to stop POWERUPSOUND
@@ -210,7 +237,7 @@ static void status_update(void)
 					ghost_toggle_STOP(ghosts[i], true);
 				wasCM_S = true;
 			}
-			if (CM_K) //press K still valid
+			if (CM_K) // press K still valid
 			{
 				for (int i = 0; i < GHOST_NUM; i++)
 					ghost_toggle_GOIN(ghosts[i], true);
@@ -262,40 +289,47 @@ static void status_update(void)
 		CM_L = false;
 	}
 	// draw pmanArea for check collide
-	RecArea pmanArea = getDrawArea((object *)pman, GAME_TICK_CD);
-	for (int i = 0; i < GHOST_NUM; i++)
+	// RecArea pmanArea = getDrawArea((object *)pman, GAME_TICK_CD);
+	RecArea *pmansArea = malloc(sizeof(RecArea) * PMAN_NUM);
+	for (int i = 0; i < PMAN_NUM; i++)
+		pmansArea[i] = getDrawArea((object *)pmans[i], GAME_TICK_CD);
+
+	for (int j = 0; j < PMAN_NUM; j++) // big for loop to whole check each pmans!
 	{
-		// draw ghost
-		RecArea ghostArea = getDrawArea((object *)ghosts[i], GAME_TICK_CD);
-		bool isCollide = RecAreaOverlap(&pmanArea, &ghostArea);
-		if (ghosts[i]->status == GO_IN)
+		for (int i = 0; i < GHOST_NUM; i++)
 		{
-			continue;
-		}
-		else if (ghosts[i]->status == FREEDOM || ghosts[i]->status == STOP) // #add
-		{
-			// $TODO-GC-game_over: use `getDrawArea(..., GAME_TICK_CD)` and `RecAreaOverlap(..., GAME_TICK_CD)` functions to detect if pacman and ghosts collide with each other.
-			// And perform corresponding operations.
-			// [NOTE] You should have some if-else branch here if you want to implement power bean mode.
-			// Uncomment Following Code
-
-			if (isCollide) //(!cheat_mode && isCollide) #add
+			// draw ghost
+			RecArea ghostArea = getDrawArea((object *)ghosts[i], GAME_TICK_CD);
+			bool isCollide = RecAreaOverlap(&pmansArea[j], &ghostArea);
+			if (ghosts[i]->status == GO_IN)
 			{
-				game_log("collide with ghost %d\n", i);
-				al_rest(1.0);
-
-				pacman_die();			// play die sound
-				game_over = true; // it will set up timer for death_anim (pman->death_anim_counter)
-				break;						// animation shouldn't be trigger twice.
+				continue;
 			}
-		}
-		else if (ghosts[i]->status == FLEE) // ghost eaten by pacman
-		{
-			// $TODO-GC-PB: if ghost is collided by pacman, it should go back to the cage immediately and come out after a period.
-
-			if (isCollide) //(!cheat_mode && isCollide) //#add
+			else if (ghosts[i]->status == FREEDOM || ghosts[i]->status == STOP) // #add
 			{
-				ghost_collided(ghosts[i]); // pacman eat ghost, change ghost status to GO_IN
+				// $TODO-GC-game_over: use `getDrawArea(..., GAME_TICK_CD)` and `RecAreaOverlap(..., GAME_TICK_CD)` functions to detect if pacman and ghosts collide with each other.
+				// And perform corresponding operations.
+				// [NOTE] You should have some if-else branch here if you want to implement power bean mode.
+				// Uncomment Following Code
+
+				if (isCollide) //(!cheat_mode && isCollide) #add
+				{
+					game_log("collide with ghost %d\n", i);
+					al_rest(1.0);
+
+					pacman_die();			// play die sound
+					game_over = true; // it will set up timer for death_anim (pman->death_anim_counter)
+					break;						// animation shouldn't be trigger twice.
+				}
+			}
+			else if (ghosts[i]->status == FLEE) // ghost eaten by pacman
+			{
+				// $TODO-GC-PB: if ghost is collided by pacman, it should go back to the cage immediately and come out after a period.
+
+				if (isCollide) //(!cheat_mode && isCollide) //#add
+				{
+					ghost_collided(ghosts[i]); // pacman eat ghost, change ghost status to GO_IN
+				}
 			}
 		}
 	}
@@ -315,32 +349,34 @@ static void update(void)
 			game_change_scene(...);
 		*/
 		// set timer (pman->death_anim_counter)
-
-		if (!al_get_timer_started(pman->death_anim_counter))
-		{
-			al_start_timer(pman->death_anim_counter);
-		}
-		// pacman die anim stop
-		else
-		{
-			PMANDIE_TICK = al_get_timer_count(pman->death_anim_counter);
-			// Stop the timer and reset count
-			if (PMANDIE_TICK >= 12 - 1)
+		// for (int j = 0; j < PMAN_NUM; j++) //TODO-MC to check all pmans #FIX? anim only for Player1
+		// {
+			if (!al_get_timer_started(pmans[0]->death_anim_counter))
 			{
-				al_stop_timer(pman->death_anim_counter);
-				al_set_timer_count(pman->death_anim_counter, 0); // reset
-				PMANDIE_TICK = al_get_timer_count(pman->death_anim_counter);
-				game_log("PMANDIE_TICK:%d\n", PMANDIE_TICK); // #if not change scene it will not stop
-				dieAnimDone = true;
+				al_start_timer(pmans[0]->death_anim_counter);
 			}
-		}
-		// check change scene
-		if (dieAnimDone)
-		{
-			game_change_scene(scene_menu_create());
-			dieAnimDone = false; // back to false for next round
-		}
-
+			// pacman die anim stop
+			else
+			{
+				PMANDIE_TICK = al_get_timer_count(pmans[0]->death_anim_counter);
+				// Stop the timer and reset count
+				if (PMANDIE_TICK >= 12 - 1)
+				{
+					al_stop_timer(pmans[0]->death_anim_counter);
+					al_set_timer_count(pmans[0]->death_anim_counter, 0); // reset
+					PMANDIE_TICK = al_get_timer_count(pmans[0]->death_anim_counter);
+					game_log("PMANDIE_TICK:%d\n", PMANDIE_TICK); // #if not change scene it will not stop
+					dieAnimDone = true;
+				}
+			}
+			// check change scene
+			if (dieAnimDone)
+			{
+				al_rest(1); // #add
+				game_change_scene(scene_menu_create());
+				dieAnimDone = false; // back to false for next round
+			}
+		// }
 		return;
 	}
 	// $TODO-PB: add all beans finish game
@@ -353,10 +389,13 @@ static void update(void)
 	step();
 	checkItem();
 	status_update();
-	pacman_move(pman, basic_map);
-	pacman_move(pman2,basic_map);
+	// pacman_move(pman, basic_map);
+	// pacman_move(pman2, basic_map); // TODO-MC
+	for (int i = 0; i <PMAN_NUM; i++)
+		pacman_move(pmans[i], basic_map);
+
 	for (int i = 0; i < GHOST_NUM; i++)
-		ghosts[i]->move_script(ghosts[i], basic_map, pman);
+		ghosts[i]->move_script(ghosts[i], basic_map, pmans[0]);
 }
 
 static void draw(void)
@@ -382,8 +421,8 @@ static void draw(void)
 
 	draw_map(basic_map);
 
-	pacman_draw(pman);
-	pacman_draw2(pman2); //TODO-MC
+	pacman_draw(pmans[0]);
+	pacman_draw2(pmans[1]); // TODO-MC
 	if (game_over)
 		return;
 	// no drawing below when game over
@@ -399,7 +438,7 @@ static void draw(void)
 
 static void draw_hitboxes(void)
 {
-	RecArea pmanHB = getDrawArea((object *)pman, GAME_TICK_CD);
+	RecArea pmanHB = getDrawArea((object *)pmans[0], GAME_TICK_CD);
 	al_draw_rectangle(
 			pmanHB.x, pmanHB.y,
 			pmanHB.x + pmanHB.w, pmanHB.y + pmanHB.h,
@@ -418,20 +457,24 @@ static void draw_hitboxes(void)
 static void printinfo(void)
 {
 	game_log("pacman:\n");
-	game_log("coord: %d, %d\n", pman->objData.Coord.x, pman->objData.Coord.y);
-	game_log("PreMove: %d\n", pman->objData.preMove);
-	game_log("NextTryMove: %d\n", pman->objData.nextTryMove);
-	game_log("Speed: %f\n", pman->speed);
+	game_log("coord: %d, %d\n", pmans[0]->objData.Coord.x, pmans[0]->objData.Coord.y);
+	game_log("PreMove: %d\n", pmans[0]->objData.preMove);
+	game_log("NextTryMove: %d\n", pmans[0]->objData.nextTryMove);
+	game_log("Speed: %f\n", pmans[0]->speed);
+
 }
 
 static void destroy(void)
 {
 	// TODO-CM: make sure cheat mode back to false #add
 	cheat_mode = false;
+	P2block = false;
 	// $TODO-GC-memory: free map array, Pacman and ghosts
 	// pacman
-	pacman_destroy(pman);
-	pacman_destroy(pman2); //TODO-MC
+	for (int j = 0; j < PMAN_NUM; j++)
+		pacman_destroy(pmans[j]);
+	// pacman_destroy(pman);
+	// pacman_destroy(pman2); // TODO-MC
 	// ghost
 	for (int i = 0; i < GHOST_NUM; i++)
 	{
@@ -452,6 +495,7 @@ static void destroy(void)
 		game_log("%d Play1Keys: %d", i, Play1Keys[i]);
 	}
 	game_log("key full %d", isValidPlay1Key);
+	// printinfo();
 }
 
 static void on_key_down(int key_code)
@@ -460,13 +504,13 @@ static void on_key_down(int key_code)
 	{
 		// can't use switch case Play1Keys[0]: The case labels in a switch statement must be constant expressions known at compile time, but the contents of Play1Keys are determined at runtime.
 		if (key_code == Play1Keys[0])
-			pacman_NextMove(pman, UP);
+			pacman_NextMove(pmans[0], UP);
 		else if (key_code == Play1Keys[2])
-			pacman_NextMove(pman, LEFT);
+			pacman_NextMove(pmans[0], LEFT);
 		else if (key_code == Play1Keys[1])
-			pacman_NextMove(pman, DOWN);
+			pacman_NextMove(pmans[0], DOWN);
 		else if (key_code == Play1Keys[3])
-			pacman_NextMove(pman, RIGHT);
+			pacman_NextMove(pmans[0], RIGHT);
 	}
 	else
 	{
@@ -475,16 +519,16 @@ static void on_key_down(int key_code)
 		// TODO-HACKATHON 1-1: Use allegro pre-defined enum ALLEGRO_KEY_<KEYNAME> to controll pacman movement
 		// we provided you a function `pacman_NextMove` to set the pacman's next move direction.
 		case ALLEGRO_KEY_W:
-			pacman_NextMove(pman, UP);
+			pacman_NextMove(pmans[0], UP);
 			break;
 		case ALLEGRO_KEY_A:
-			pacman_NextMove(pman, LEFT);
+			pacman_NextMove(pmans[0], LEFT);
 			break;
 		case ALLEGRO_KEY_S:
-			pacman_NextMove(pman, DOWN);
+			pacman_NextMove(pmans[0], DOWN);
 			break;
 		case ALLEGRO_KEY_D:
-			pacman_NextMove(pman, RIGHT);
+			pacman_NextMove(pmans[0], RIGHT);
 			break;
 		}
 	}
@@ -531,27 +575,43 @@ static void on_key_down(int key_code)
 		}
 	}
 }
-static void on_key_down2(int key_code) //#TODO-MC
+static void on_key_down2(int key_code) // #TODO-MC
 {
-	switch (key_code)
+	if (P2block)
 	{
+		if (ALLEGRO_KEY_SLASH == key_code)
+			P2block = false;
+		else
+			return;
+	}
+	else
+	{
+		switch (key_code)
+		{
 		case ALLEGRO_KEY_UP:
-			pacman_NextMove(pman2, UP);
+			pacman_NextMove(pmans[1], UP);
 			break;
 		case ALLEGRO_KEY_LEFT:
-			pacman_NextMove(pman2, LEFT);
+			pacman_NextMove(pmans[1], LEFT);
 			break;
 		case ALLEGRO_KEY_DOWN:
-			pacman_NextMove(pman2, DOWN);
+			pacman_NextMove(pmans[1], DOWN);
 			break;
 		case ALLEGRO_KEY_RIGHT:
-			pacman_NextMove(pman2, RIGHT);
+			pacman_NextMove(pmans[1], RIGHT);
+			break;
+		case ALLEGRO_KEY_SLASH:
+			pman2Cordi = get_pman2_position(pmans[1]);
+			if (!P2block)
+				P2block = !P2block;
+			printf("Player2 switch block, last coordinate(%d,%d)\n", pman2Cordi.x, pman2Cordi.y);
 			break;
 		case ALLEGRO_KEY_G:
 			debug_mode = !debug_mode;
 			break;
-	default:
-		break;
+		default:
+			break;
+		}
 	}
 }
 static void on_mouse_down(int btn, int x, int y, int dz)
@@ -565,8 +625,9 @@ static void render_init_screen(void)
 	al_clear_to_color(al_map_rgb(0, 0, 0));
 
 	draw_map(basic_map);
-	pacman_draw(pman);
-	pacman_draw2(pman2); //#TODO-MC
+
+	pacman_draw(pmans[0]);
+	pacman_draw2(pmans[1]); // #TODO-MC
 	for (int i = 0; i < GHOST_NUM; i++)
 	{
 		ghost_draw(ghosts[i]);
@@ -626,4 +687,12 @@ int32_t set_power_up_timer_tick(int mode) // templaet: get_power_up_timer_tick
 int32_t get_power_up_duration()
 {
 	return al_get_timer_count(power_up_timer);
+}
+Pair_IntInt get_pman2_position(const Pacman *pacman)
+{
+	Pair_IntInt pman2Block;
+	pman2Block.x = pacman->objData.Coord.x;
+	pman2Block.y = pacman->objData.Coord.y;
+
+	return pman2Block;
 }

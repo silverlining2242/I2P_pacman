@@ -17,6 +17,8 @@ extern uint32_t GAME_TICK_CD;
 extern const int block_width, block_height;
 extern int GHOST_NUM;		 // #add
 extern Cage_grid *Cages; // #add
+extern bool P2block;		 // TODO-MC
+extern Pair_IntInt pman2Cordi; // TODO-MC
 
 /* Internal variables */
 static const int fix_draw_pixel_offset_x = -3;
@@ -67,7 +69,7 @@ Ghost *ghost_create(int flag)
 		ghost->objData.Coord.x = cage_grid2_x;
 		ghost->objData.Coord.y = cage_grid2_y;
 		ghost->move_sprite = load_bitmap("Assets/ghost_move_pink.png");
-		ghost->move_script = &ghost_move_script_shortest_path;
+		ghost->move_script = &ghost_move_script_random; //#change
 		break;
 	case Inky: // Blue
 		// *load move script of shortest_path
@@ -289,6 +291,15 @@ bool ghost_movable(const Ghost *ghost, const Map *M, Directions targetDirec, boo
 	// game_log("(%d,%d)\n",checkx,checky);
 	if (is_wall_block(M, checkx, checky) || (disallow_room && is_room_block(M, checkx, checky)))
 		return false;
+
+	if (P2block)
+	{
+		if (is_wall_block(M, checkx, checky) || is_room_block(M, checkx, checky) || (checkx == pman2Cordi.x && checky == pman2Cordi.y))
+		{
+			game_log("ghost not run into pacman2");
+			return false;
+		}
+	}
 
 	return true;
 	// TODO-HACKATHON 1-2: Determine if the current direction is movable.

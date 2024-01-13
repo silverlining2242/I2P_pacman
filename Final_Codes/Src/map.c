@@ -21,6 +21,7 @@ static void draw_power_bean(const Map *M, const int row, const int col);
 Cage_grid *Cages;		// #add
 Pair_IntInt *pmanP; // #add
 
+
 const char *nthu_map[] = {
 		"#####################################",
 		"#..................###.........#####",

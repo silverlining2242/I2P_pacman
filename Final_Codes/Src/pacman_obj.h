@@ -25,6 +25,8 @@ typedef struct Pacman
 	ALLEGRO_TIMER *death_anim_counter;
 	ALLEGRO_BITMAP *move_sprite;
 	ALLEGRO_BITMAP *die_sprite;
+	ALLEGRO_BITMAP *block_sprite; //#TODO-MC
+	
 } Pacman;
 
 Pacman *pacman_create(int num);

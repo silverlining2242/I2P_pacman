@@ -31,4 +31,5 @@ bool is_wall_block(const Map *M, int index_x, int index_y);
 bool is_room_block(const Map *M, int index_x, int index_y);
 bool is_wall_point(const Map *M, float x, float y);
 bool is_room_point(const Map *M, float x, float y);
+
 #endif
