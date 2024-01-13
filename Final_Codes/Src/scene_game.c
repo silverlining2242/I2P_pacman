@@ -22,10 +22,12 @@ extern const uint32_t GAME_TICK_CD;
 extern uint32_t GAME_TICK;
 extern uint32_t POWERUP_TICK;
 extern uint32_t PMANDIE_TICK;
+extern uint32_t PMAN2COOL_TICK;
 extern ALLEGRO_TIMER *game_tick_timer;
 int game_main_Score = 0;
 bool game_over = false;
 char *beans_text;						 // #add
+char *cool_text;						 // TODO-MC
 extern int Play1Keys[4];		 // #add from shared.c
 extern bool isValidPlay1Key; // #add from shared.c
 extern bool dieAnimDone;		 // #add
@@ -33,6 +35,7 @@ extern bool dieAnimDone;		 // #add
 /* Internal variables*/
 static ALLEGRO_TIMER *power_up_timer; // why it static??
 static const int power_up_duration = 10;
+static const int pman2_cool_duration = 3;
 static Pacman **pmans; // #change
 // static Pacman *pman;
 // static Pacman *pman2; // #change
@@ -154,7 +157,7 @@ static void step(void)
 			ghosts[i]->objData.moveCD -= ghosts[i]->speed;
 	}
 }
-static void checkItem(void) //only for player 1
+static void checkItem(void) // only for player 1
 {
 	int Grid_x = pmans[0]->objData.Coord.x, Grid_y = pmans[0]->objData.Coord.y;
 	if (Grid_y >= basic_map->row_num - 1 || Grid_y <= 0 || Grid_x >= basic_map->col_num - 1 || Grid_x <= 0)
@@ -193,7 +196,7 @@ static void checkItem(void) //only for player 1
 static void status_update(void)
 {
 	// $TODO-PB: check powerUp duration
-
+	// Player 1 pacman status:
 	if (pmans[0]->powerUp)
 	{
 		// change ghost status
@@ -288,6 +291,22 @@ static void status_update(void)
 		}
 		CM_L = false;
 	}
+	// Player 2: status update #TODO-MC
+	if (P2block)
+	{
+		PMAN2COOL_TICK = al_get_timer_count(pmans[1]->cool_counter);
+		if (PMAN2COOL_TICK >= pman2_cool_duration)
+		{
+			game_log("cool tick: %d exceed %d\n", PMAN2COOL_TICK, pman2_cool_duration);
+			set_cool_timer_pman2(pmans[1], 0);
+			P2block = false; // reset
+		}
+	}
+	else
+	{
+		set_cool_timer_pman2(pmans[1], 0);
+	}
+
 	// draw pmanArea for check collide
 	// RecArea pmanArea = getDrawArea((object *)pman, GAME_TICK_CD);
 	RecArea *pmansArea = malloc(sizeof(RecArea) * PMAN_NUM);
@@ -351,31 +370,31 @@ static void update(void)
 		// set timer (pman->death_anim_counter)
 		// for (int j = 0; j < PMAN_NUM; j++) //TODO-MC to check all pmans #FIX? anim only for Player1
 		// {
-			if (!al_get_timer_started(pmans[0]->death_anim_counter))
+		if (!al_get_timer_started(pmans[0]->death_anim_counter))
+		{
+			al_start_timer(pmans[0]->death_anim_counter);
+		}
+		// pacman die anim stop
+		else
+		{
+			PMANDIE_TICK = al_get_timer_count(pmans[0]->death_anim_counter);
+			// Stop the timer and reset count
+			if (PMANDIE_TICK >= 12 - 1)
 			{
-				al_start_timer(pmans[0]->death_anim_counter);
-			}
-			// pacman die anim stop
-			else
-			{
+				al_stop_timer(pmans[0]->death_anim_counter);
+				al_set_timer_count(pmans[0]->death_anim_counter, 0); // reset
 				PMANDIE_TICK = al_get_timer_count(pmans[0]->death_anim_counter);
-				// Stop the timer and reset count
-				if (PMANDIE_TICK >= 12 - 1)
-				{
-					al_stop_timer(pmans[0]->death_anim_counter);
-					al_set_timer_count(pmans[0]->death_anim_counter, 0); // reset
-					PMANDIE_TICK = al_get_timer_count(pmans[0]->death_anim_counter);
-					game_log("PMANDIE_TICK:%d\n", PMANDIE_TICK); // #if not change scene it will not stop
-					dieAnimDone = true;
-				}
+				game_log("PMANDIE_TICK:%d\n", PMANDIE_TICK); // #if not change scene it will not stop
+				dieAnimDone = true;
 			}
-			// check change scene
-			if (dieAnimDone)
-			{
-				al_rest(1); // #add
-				game_change_scene(scene_menu_create());
-				dieAnimDone = false; // back to false for next round
-			}
+		}
+		// check change scene
+		if (dieAnimDone)
+		{
+			al_rest(1); // #add
+			game_change_scene(scene_menu_create());
+			dieAnimDone = false; // back to false for next round
+		}
 		// }
 		return;
 	}
@@ -391,7 +410,7 @@ static void update(void)
 	status_update();
 	// pacman_move(pman, basic_map);
 	// pacman_move(pman2, basic_map); // TODO-MC
-	for (int i = 0; i <PMAN_NUM; i++)
+	for (int i = 0; i < PMAN_NUM; i++)
 		pacman_move(pmans[i], basic_map);
 
 	for (int i = 0; i < GHOST_NUM; i++)
@@ -410,12 +429,22 @@ static void draw(void)
 			menuFont, al_map_rgb(255, 255, 0),
 			10, 10, 0,
 			beans_text);
+	// TODO-MC: draw cool down
+	if(P2block)
+	{
+		cool_text = (char *)malloc(sizeof(char) * 30);
+		sprintf(cool_text, "Cool left: %d", pman2_cool_duration - PMAN2COOL_TICK);
+		al_draw_text(
+				menuFont, al_map_rgb(3, 168, 158),
+				400, 10, 0,
+				cool_text);
+	}
 	// $TODO-CM: draw on
 	if (cheat_mode)
 	{
 		al_draw_text(
-				menuFont, al_map_rgb(255, 255, 0),
-				650, 5, 0,
+				menuFont, al_map_rgb(227, 23, 13),
+				650, 10, 0,
 				"Cheat On");
 	}
 
@@ -461,7 +490,6 @@ static void printinfo(void)
 	game_log("PreMove: %d\n", pmans[0]->objData.preMove);
 	game_log("NextTryMove: %d\n", pmans[0]->objData.nextTryMove);
 	game_log("Speed: %f\n", pmans[0]->speed);
-
 }
 
 static void destroy(void)
@@ -486,7 +514,9 @@ static void destroy(void)
 	// free(pman); // don't double free!! comment out
 	// free(basic_map);
 	free(ghosts);
+	free(pmans);
 	free(beans_text);
+	free(cool_text);
 	// check
 	game_log("scene_game.c destroy() func called\n");
 
@@ -580,9 +610,14 @@ static void on_key_down2(int key_code) // #TODO-MC
 	if (P2block)
 	{
 		if (ALLEGRO_KEY_SLASH == key_code)
+		{
+			set_cool_timer_pman2(pmans[1], 1); // mode 1 to init cool down
 			P2block = false;
+		}
 		else
+		{
 			return;
+		}
 	}
 	else
 	{
@@ -601,7 +636,8 @@ static void on_key_down2(int key_code) // #TODO-MC
 			pacman_NextMove(pmans[1], RIGHT);
 			break;
 		case ALLEGRO_KEY_SLASH:
-			pman2Cordi = get_pman2_position(pmans[1]);
+			set_cool_timer_pman2(pmans[1], 1);				 // mode 1 to init cool down
+			pman2Cordi = get_pman2_position(pmans[1]); // TODO-MC
 			if (!P2block)
 				P2block = !P2block;
 			printf("Player2 switch block, last coordinate(%d,%d)\n", pman2Cordi.x, pman2Cordi.y);
@@ -695,4 +731,24 @@ Pair_IntInt get_pman2_position(const Pacman *pacman)
 	pman2Block.y = pacman->objData.Coord.y;
 
 	return pman2Block;
+}
+
+void set_cool_timer_pman2(Pacman *pman, int mode) // TODO-MC
+{
+	// ALLEGRO_TIMER timer = pman->cool_counter;
+	if (mode == 1)
+	{
+		if (al_get_timer_started(pman->cool_counter)) // if already start, then stop
+			al_stop_timer(pman->cool_counter);
+		al_set_timer_count(pman->cool_counter, 0); // reset timer to 0 and restart
+		al_start_timer(pman->cool_counter);
+	}
+	if (mode == 0)
+	{
+		if (al_get_timer_started(pman->cool_counter)) // if already start, then stop
+			al_stop_timer(pman->cool_counter);
+		al_set_timer_count(pman->cool_counter, 0);
+		PMAN2COOL_TICK = 0;
+	}
+	return;
 }

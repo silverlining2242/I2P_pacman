@@ -26,11 +26,11 @@ extern uint32_t GAME_TICK_CD;
 extern uint32_t PMANDIE_TICK;
 extern bool game_over;
 extern float effect_volume;
-extern Pair_IntInt *pmanP; // #add
-extern bool CM_L;					 // #add
-extern bool P2block;			 // TODO-MC
-extern Pair_IntInt pman2Cordi;					// TODO-MC
-extern int GHOST_NUM;										// #add TODO-MC
+extern Pair_IntInt *pmanP;		 // #add
+extern bool CM_L;							 // #add
+extern bool P2block;					 // TODO-MC
+extern Pair_IntInt pman2Cordi; // TODO-MC
+extern int GHOST_NUM;					 // #add TODO-MC
 
 /* Declare static function */
 static bool pacman_movable(const Pacman *pacman, const Map *M, Directions targetDirec)
@@ -48,9 +48,9 @@ static bool pacman_movable(const Pacman *pacman, const Map *M, Directions target
 	checkx = pacman->objData.Coord.x;
 	checky = pacman->objData.Coord.y;
 
-	switch (targetDirec) //use nextTry to check if movable
+	switch (targetDirec) // use nextTry to check if movable
 	{
-	case UP: //check pman above position is movable?
+	case UP: // check pman above position is movable?
 		checky -= 1;
 		break;
 	case DOWN:
@@ -79,9 +79,9 @@ static bool pacman_movable(const Pacman *pacman, const Map *M, Directions target
 		if (is_room_block(M, checkx, checky))
 			return false;
 	}
-	if(P2block)
+	if (P2block)
 	{
-		if (is_wall_block(M, checkx, checky) || is_room_block(M, checkx, checky)||(checkx==pman2Cordi.x && checky==pman2Cordi.y))
+		if (is_wall_block(M, checkx, checky) || is_room_block(M, checkx, checky) || (checkx == pman2Cordi.x && checky == pman2Cordi.y))
 			return false;
 	}
 
@@ -115,6 +115,7 @@ Pacman *pacman_create(int num) // change
 	{
 		pman->move_sprite = load_bitmap("Assets/pacman2_move.png");
 		pman->block_sprite = load_bitmap("Assets/block1.png");
+		pman->cool_counter = al_create_timer(1.0f);
 	}
 	else
 	{
@@ -131,21 +132,22 @@ void pacman_destroy(Pacman *pman)
 	// image
 	al_destroy_bitmap(pman->move_sprite);
 	al_destroy_bitmap(pman->die_sprite);
-	// al_destroy_bitmap(pman->block_sprite);
-	//  timer
+	// if (pman->block_sprite) //this has error #FIX
+	// 	al_destroy_bitmap(pman->block_sprite);
+	//  timer //TODO-MC
 	al_destroy_timer(pman->death_anim_counter);
+	// if (pman->cool_counter) #FIX
+	// 	al_destroy_timer(pman->cool_counter);
 	// malloc
 	free(pman);
-	
-
 }
 
-void pacman_draw(Pacman *pman) 
+void pacman_draw(Pacman *pman)
 {
 
 	// $TODO-GC-animation: Draw Pacman and animations
 	// hint: use pman->objData.moveCD to determine which frame of the animation to draw
-	
+
 	RecArea drawArea = getDrawArea((object *)pman, GAME_TICK_CD);
 
 	// Draw default image: this is before animation(duplicate)
@@ -363,5 +365,3 @@ void stop_PACMAN_POWERUPSOUND() // create function: to used in scene_game.c
 {
 	stop_bgm(PACMAN_MOVESOUND_ID);
 }
-
-

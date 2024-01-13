@@ -8,8 +8,10 @@
 
 Scene scene_main_create(void);
 
-int32_t set_power_up_timer_tick(int mode); // change from get_power_up_timer_tick();
+int32_t set_power_up_timer_tick(int mode);            // change from get_power_up_timer_tick();
+void set_cool_timer_pman2(Pacman *pman, int mode); // TODO-MC
 int32_t get_power_up_duration();
+
 extern void stop_PACMAN_POWERUPSOUND();
 
 #endif
