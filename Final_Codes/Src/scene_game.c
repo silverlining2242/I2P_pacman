@@ -37,9 +37,10 @@ static Map *basic_map;
 static Ghost **ghosts;
 bool debug_mode = false;
 bool cheat_mode = false;
-bool CM_K = false;
+bool CM_K = false; // TODO-CM
 bool CM_S = false;
-bool wasCM_S = false; //#add to improve efficiency to avoid reset normal when CM_S not active
+bool wasCM_S = false; // #add to improve efficiency to avoid reset normal when CM_S not active
+bool CM_L = false;
 
 /* Declare static function prototypes */
 static void init(void);
@@ -62,7 +63,7 @@ static void init(void)
 	// create map
 	basic_map = create_map(NULL);
 	// $TODO-GC-read_txt: Create map from .txt file so that you can design your own map!!
-	// basic_map = create_map("Assets/map_new2.txt"); //*okay
+	//basic_map = create_map("Assets/map_nthu.txt"); //*okay
 	if (!basic_map)
 	{
 		game_abort("error on creating map");
@@ -192,9 +193,9 @@ static void status_update(void)
 	if (cheat_mode)
 	{
 		// game_log("cheat_mode in status_update");
-		if(CM_S)
+		if (CM_S)
 		{
-			if(!wasCM_S) // only set stop when it's not already stop
+			if (!wasCM_S) // only set stop when it's not already stop
 			{
 				for (int i = 0; i < GHOST_NUM; i++)
 					ghost_toggle_STOP(ghosts[i], true);
@@ -203,13 +204,13 @@ static void status_update(void)
 		}
 		else
 		{
-			if(wasCM_S) //reset stop only if prev CM_S is active
+			if (wasCM_S) // reset stop only if prev CM_S is active
 			{
 				for (int i = 0; i < GHOST_NUM; i++)
 					ghost_toggle_STOP(ghosts[i], false);
 				wasCM_S = false;
 			}
-			if(CM_K)
+			if (CM_K)
 			{
 				for (int i = 0; i < GHOST_NUM; i++)
 					ghost_toggle_GOIN(ghosts[i], true);
@@ -218,23 +219,16 @@ static void status_update(void)
 		}
 		// if (CM_K)
 		// {
-		// 	for (int i = 0; i < GHOST_NUM; i++)
-		// 	{
-		// 		// bool setFLEE = (ghosts[i]->status == FREEDOM) ? true : false;
-		// 		ghost_toggle_GOIN(ghosts[i], true);
-		// 	}
+		//  for loop to set ghost_toggle_GOIN(ghosts[i], true);
 		// 	CM_K = false; // reset
 		// }
-		// if (CM_S) 
+		// if (CM_S)
 		// {
-		// 	for (int i = 0; i < GHOST_NUM; i++)
-		// 		ghost_toggle_STOP(ghosts[i], true);
-		// 	// not reset until press again
+		// 		for loop to set ghost_toggle_STOP(ghosts[i], true);// not reset until press again
 		// }
 		// else // error: keep update to normal so overwrite CM_K
 		// {
-		// 	for (int i = 0; i < GHOST_NUM; i++)
-		// 		ghost_toggle_STOP(ghosts[i], false);
+		// 		for loop to set ghost_toggle_STOP(ghosts[i], false);
 		// }
 	}
 	// draw pmanArea for check collide
@@ -494,6 +488,10 @@ static void on_key_down(int key_code)
 		case ALLEGRO_KEY_S:
 			CM_S = !CM_S;
 			printf("ghosts stop moving\n");
+			break;
+		case ALLEGRO_KEY_L:
+			CM_L = !CM_L;
+			printf("pacman can cross wall\n");
 			break;
 		default:
 			break;

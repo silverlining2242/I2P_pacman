@@ -6,7 +6,7 @@
 #include "map.h"
 #define QUEUE_SIZE 3000
 #define MAX_CAGES 20
-
+#define MAX_PMAN 10
 /*global variables*/
 // [ NOTE ]
 const int block_width = 21, block_height = 21;	// the pixel size of a "block"
@@ -18,7 +18,8 @@ static void draw_block_index(const Map *M, int row, int col);
 static void draw_bean(const Map *M, const int row, const int col);
 static void draw_power_bean(const Map *M, const int row, const int col);
 
-Cage_grid *Cages; // #add
+Cage_grid *Cages;		// #add
+Pair_IntInt *pmanP; // #add
 
 const char *nthu_map[] = {
 		"#####################################",
@@ -45,7 +46,7 @@ const char *nthu_map[] = {
 		"#........#######.......# #.# #.# #.#",
 		"#.######.#     #####.### #.# #.###.#",
 		"#.#    #.###########.#####.###.....#",
-		"#.######.#.....P.............#.###.#",
+		"#.######.#.....P........0....#.###.#",
 		"#..........#########.#######.#.# #.#",
 		"#.#######.##########.#     #...# #.#",
 		"#.#######............#######.#.###.#",
@@ -97,10 +98,11 @@ Map *create_map(const char *filepath)
 	}
 
 	/*
-		Allocate a 2-Dimension dynamic char array for recording Map at M->map and Cage_Grid
+		Allocate a 2-Dimension dynamic char array for recording Map at M->map and Cage_Grid, pmanInitP
 	*/
 	M->map = (char **)malloc(sizeof(char *) * M->row_num);
 	Cages = (Cage_grid *)malloc(sizeof(Cage_grid) * MAX_CAGES);
+	pmanP = (Pair_IntInt *)malloc(sizeof(Pair_IntInt) * MAX_PMAN);
 
 	if (!M->map)
 	{
@@ -119,6 +121,7 @@ Map *create_map(const char *filepath)
 
 	M->wallnum = M->beansCount = 0; // * Record the number of beans and walls, which can be used to print score or other usage.
 	int cages_idx = 0;
+	int pmanP_idx = 0;
 	for (int i = 0; i < M->row_num; i++)
 	{
 		for (int j = 0; j < M->col_num; j++)
@@ -144,8 +147,13 @@ Map *create_map(const char *filepath)
 				break;
 			case 'B':
 				Cages[cages_idx].cage_grid_x = j;
-				Cages[cages_idx].cage_grid_y = i + 1; // first line is col row
+				Cages[cages_idx].cage_grid_y = i + 1; // default map and import is diff, if use default +1 else not
 				cages_idx++;
+				break;
+			case '0':
+				pmanP[pmanP_idx].x = j;
+				pmanP[pmanP_idx].y = i;
+				pmanP_idx++;
 				break;
 			default:
 				break;
@@ -182,11 +190,16 @@ void delete_map(Map *M)
 		free(M->map);
 		M->map = NULL;
 	}
-	// free cages
+	// free cages and pmanP
 	if (Cages)
 	{
 		free(Cages);
 		Cages = NULL;
+	}
+	if (pmanP)
+	{
+		free(pmanP);
+		pmanP = NULL;
 	}
 	free(M); // Free the Map struct itself
 }

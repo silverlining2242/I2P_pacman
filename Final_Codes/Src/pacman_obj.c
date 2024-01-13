@@ -25,6 +25,7 @@ extern uint32_t GAME_TICK_CD;
 extern uint32_t PMANDIE_TICK;
 extern bool game_over;
 extern float effect_volume;
+extern Pair_IntInt *pmanP; //#add
 
 /* Declare static function */
 static bool pacman_movable(const Pacman *pacman, const Map *M, Directions targetDirec)
@@ -69,12 +70,15 @@ static bool pacman_movable(const Pacman *pacman, const Map *M, Directions target
 
 Pacman *pacman_create()
 {
+	// get position in map
+	int pman_grid2_x = pmanP[0].x;
+	int pman_grid2_y = pmanP[0].y;
 	// Allocate dynamic memory for pman pointer;
 	Pacman *pman = (Pacman *)malloc(sizeof(Pacman));
 	if (!pman)
 		return NULL;
-	pman->objData.Coord.x = 24;
-	pman->objData.Coord.y = 24;
+	pman->objData.Coord.x = pman_grid2_x; //24;
+	pman->objData.Coord.y = pman_grid2_y;//24;
 	pman->objData.Size.x = block_width;
 	pman->objData.Size.y = block_height;
 
