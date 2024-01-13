@@ -48,6 +48,7 @@ typedef struct {
 	func_ptr_mouse on_mouse_up;
 	func_ptr_mouse on_mouse_scroll;
 	// TODO-IF: More event callbacks such as timer tick, video finished, ...
+	func_ptr_keyboard on_key_down2; //#TODO-MC
 } Scene;
 
 // Frame rate (frame per second)

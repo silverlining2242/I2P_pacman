@@ -27,7 +27,7 @@ extern uint32_t PMANDIE_TICK;
 extern bool game_over;
 extern float effect_volume;
 extern Pair_IntInt *pmanP; // #add
-extern bool CM_L;							 // #add
+extern bool CM_L;					 // #add
 
 /* Declare static function */
 static bool pacman_movable(const Pacman *pacman, const Map *M, Directions targetDirec)
@@ -64,28 +64,29 @@ static bool pacman_movable(const Pacman *pacman, const Map *M, Directions target
 		return false;
 	}
 	// game_log("(%d,%d)\n",checkx,checky);
-	if(!CM_L) //#TODO-CM
+	if (!CM_L) // #TODO-CM
 	{
 		if (is_wall_block(M, checkx, checky) || is_room_block(M, checkx, checky))
 			return false;
 	}
 	else
 	{
-		if ( is_room_block(M, checkx, checky))
+		if (is_room_block(M, checkx, checky))
 			return false;
 	}
-
 
 	return true;
 }
 
-Pacman *pacman_create()
+Pacman *pacman_create(int num) // change
 {
 	// get position in map
-	int pman_grid2_x = pmanP[0].x;
-	int pman_grid2_y = pmanP[0].y;
+	int pman_grid2_x = pmanP[num].x;
+	int pman_grid2_y = pmanP[num].y;
 	// Allocate dynamic memory for pman pointer;
 	Pacman *pman = (Pacman *)malloc(sizeof(Pacman));
+	//Pacman *pman2 = (Pacman *)malloc(sizeof(Pacman)); // TODO-MC duplicate
+
 	if (!pman)
 		return NULL;
 	pman->objData.Coord.x = pman_grid2_x; // 24;
@@ -100,7 +101,10 @@ Pacman *pacman_create()
 	pman->death_anim_counter = al_create_timer(1.0f / 8.0f);
 	pman->powerUp = false;
 	/* load sprites */
-	pman->move_sprite = load_bitmap("Assets/pacman_move.png");
+	if (num == 1)
+		pman->move_sprite = load_bitmap("Assets/pacman2_move.png");
+	else
+		pman->move_sprite = load_bitmap("Assets/pacman_move.png");
 	pman->die_sprite = load_bitmap("Assets/pacman_die.png");
 	return pman;
 }
@@ -185,6 +189,58 @@ void pacman_draw(Pacman *pman)
 		// refer al_get_timer_count and al_draw_scaled_bitmap. Suggestion frame rate: 8fps.
 		// in struct: pman->death_anim_counter = al_create_timer(1.0f / 8.0f); tick time each 1/8 s (return timer object)
 
+		offset = ((al_get_timer_count(pman->death_anim_counter)) % 12) * 16; // 16 * 192(192/16 = 12)
+																																				 // offset: (iterate idx in die_sprite image each 1/8 s) * 16 (each is 16* 16)
+
+		al_draw_scaled_bitmap(pman->die_sprite,
+													offset, 0,																																	// sx, sy
+													16, 16,																																			// sw, sh
+													drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y, // dx, dy
+													draw_region, draw_region, 0);
+	}
+}
+
+void pacman_draw2(Pacman *pman) // #TODO-MC
+{
+	RecArea drawArea = getDrawArea((object *)pman, GAME_TICK_CD);
+	int offset = 0; // sx frame count decide sx position of image
+	if (!game_over)
+	{
+		if (((pman->objData.moveCD >> 5) & 1) == 0) //(pman->objData.moveCD % 2 == 0) //(pman->objData.moveCD & 1) == 0)
+		{
+			offset = 0; // even
+		}
+		else if (((pman->objData.moveCD >> 5) & 1) == 1) //(pman->objData.moveCD % 2 == 1)
+		{
+			offset = 16; // odd
+		}
+
+		switch (pman->objData.facing)
+		{
+		case RIGHT:
+			offset += 0;
+			break;
+		case LEFT:
+			offset += 32;
+			break;
+		case UP:
+			offset += 64;
+			break;
+		case DOWN:
+			offset += 96;
+			break;
+		default:
+			offset += 0;
+			break;
+		}
+		al_draw_scaled_bitmap(pman->move_sprite,
+													offset, 0,																																	// sx, sy
+													16, 16,																																			// sw, sh
+													drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y, // dx, dy
+													draw_region, draw_region, 0);
+	}
+	else // die anim
+	{
 		offset = ((al_get_timer_count(pman->death_anim_counter)) % 12) * 16; // 16 * 192(192/16 = 12)
 																																				 // offset: (iterate idx in die_sprite image each 1/8 s) * 16 (each is 16* 16)
 

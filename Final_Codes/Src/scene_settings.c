@@ -120,7 +120,7 @@ static void on_key_down(int keycode)
 	{
 		switch (keycode)
 		{
-		case ALLEGRO_KEY_Q: 
+		case ALLEGRO_KEY_P: 
 			game_change_scene(scene_menu_create());
 			break;
 		default:

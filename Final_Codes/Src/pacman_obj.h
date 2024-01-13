@@ -27,10 +27,11 @@ typedef struct Pacman
 	ALLEGRO_BITMAP *die_sprite;
 } Pacman;
 
-Pacman *pacman_create();
+Pacman *pacman_create(int num);
 void pacman_destroy(Pacman *pman);
 
 void pacman_draw(Pacman *pacman);
+void pacman_draw2(Pacman *pacman);
 void pacman_move(Pacman *pacman, Map *M);
 void pacman_eatItem(Pacman *pacman, const char Item);
 

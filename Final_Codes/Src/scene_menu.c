@@ -125,6 +125,7 @@ static void on_key_down(int keycode)
 	}
 }
 
+
 // TODO-IF: Add more event callback functions such as update, ...
 
 // Functions without 'static', 'extern' prefixes is just a normal

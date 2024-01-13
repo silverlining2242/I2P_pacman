@@ -33,6 +33,7 @@ extern bool dieAnimDone;		 // #add
 static ALLEGRO_TIMER *power_up_timer; // why it static??
 static const int power_up_duration = 10;
 static Pacman *pman;
+static Pacman *pman2; //#change
 static Map *basic_map;
 static Ghost **ghosts;
 bool debug_mode = false;
@@ -52,6 +53,7 @@ static void draw(void);
 static void printinfo(void);
 static void destroy(void);
 static void on_key_down(int key_code);
+static void on_key_down2(int key_code); //TODO-MC
 static void on_mouse_down(int btn, int x, int y, int dz);
 static void render_init_screen(void);
 static void draw_hitboxes(void);
@@ -69,11 +71,18 @@ static void init(void)
 		game_abort("error on creating map");
 	}
 	// create pacman
-	pman = pacman_create();
+	pman = pacman_create(0);
 	if (!pman)
 	{
 		game_abort("error on creating pacamn\n");
 	}
+	// create pacman2 //#add
+	pman2 = pacman_create(1);
+	if (!pman2)
+		game_abort("error on creating pacamn2\n");
+	else
+		game_log("pman2 created");
+
 
 	// allocate ghost memory
 	// TODO-HACKATHON 2-1: Allocate dynamic memory for ghosts array.
@@ -345,6 +354,7 @@ static void update(void)
 	checkItem();
 	status_update();
 	pacman_move(pman, basic_map);
+	pacman_move(pman2,basic_map);
 	for (int i = 0; i < GHOST_NUM; i++)
 		ghosts[i]->move_script(ghosts[i], basic_map, pman);
 }
@@ -373,6 +383,7 @@ static void draw(void)
 	draw_map(basic_map);
 
 	pacman_draw(pman);
+	pacman_draw2(pman2); //TODO-MC
 	if (game_over)
 		return;
 	// no drawing below when game over
@@ -420,6 +431,7 @@ static void destroy(void)
 	// $TODO-GC-memory: free map array, Pacman and ghosts
 	// pacman
 	pacman_destroy(pman);
+	pacman_destroy(pman2); //TODO-MC
 	// ghost
 	for (int i = 0; i < GHOST_NUM; i++)
 	{
@@ -519,7 +531,29 @@ static void on_key_down(int key_code)
 		}
 	}
 }
-
+static void on_key_down2(int key_code) //#TODO-MC
+{
+	switch (key_code)
+	{
+		case ALLEGRO_KEY_UP:
+			pacman_NextMove(pman2, UP);
+			break;
+		case ALLEGRO_KEY_LEFT:
+			pacman_NextMove(pman2, LEFT);
+			break;
+		case ALLEGRO_KEY_DOWN:
+			pacman_NextMove(pman2, DOWN);
+			break;
+		case ALLEGRO_KEY_RIGHT:
+			pacman_NextMove(pman2, RIGHT);
+			break;
+		case ALLEGRO_KEY_G:
+			debug_mode = !debug_mode;
+			break;
+	default:
+		break;
+	}
+}
 static void on_mouse_down(int btn, int x, int y, int dz)
 {
 
@@ -532,6 +566,7 @@ static void render_init_screen(void)
 
 	draw_map(basic_map);
 	pacman_draw(pman);
+	pacman_draw2(pman2); //#TODO-MC
 	for (int i = 0; i < GHOST_NUM; i++)
 	{
 		ghost_draw(ghosts[i]);
@@ -564,6 +599,7 @@ Scene scene_main_create(void)
 	scene.on_key_down = &on_key_down;
 	scene.on_mouse_down = &on_mouse_down;
 	// TODO-IF: Register more event callback functions such as keyboard, mouse, ...
+	scene.on_key_down2 = &on_key_down2; // TODO-MC
 	game_log("Start scene created");
 	return scene;
 }

@@ -156,7 +156,6 @@ static void game_init(void)
 	shared_init();
 	// First scene
 	game_change_scene(scene_menu_create());
-	
 }
 
 static void game_start_event_loop(void)
@@ -203,8 +202,10 @@ static void game_start_event_loop(void)
 				gameDone = true;
 				continue;
 			}
-			if (active_scene.on_key_down) //if there is on_key_down func define
-				(*active_scene.on_key_down)(event.keyboard.keycode); //execute
+			if (active_scene.on_key_down)														// if there is on_key_down func define
+				(*active_scene.on_key_down)(event.keyboard.keycode);	// execute
+			if (active_scene.on_key_down2)													// for pman2 control
+				(*active_scene.on_key_down2)(event.keyboard.keycode); //
 		}
 		else if (event.type == ALLEGRO_EVENT_KEY_UP)
 		{
