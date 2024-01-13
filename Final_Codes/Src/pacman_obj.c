@@ -1,6 +1,7 @@
 #include <allegro5/allegro_primitives.h>
 #include "pacman_obj.h"
 #include "map.h"
+#include "scene_game.h" //#add
 /* Static variables */
 static const int start_grid_x = 25, start_grid_y = 25;											 // where to put pacman at the beginning
 static const int fix_draw_pixel_offset_x = -3, fix_draw_pixel_offset_y = -3; // draw offset
@@ -25,7 +26,8 @@ extern uint32_t GAME_TICK_CD;
 extern uint32_t PMANDIE_TICK;
 extern bool game_over;
 extern float effect_volume;
-extern Pair_IntInt *pmanP; //#add
+extern Pair_IntInt *pmanP; // #add
+extern bool CM_L;							 // #add
 
 /* Declare static function */
 static bool pacman_movable(const Pacman *pacman, const Map *M, Directions targetDirec)
@@ -62,8 +64,17 @@ static bool pacman_movable(const Pacman *pacman, const Map *M, Directions target
 		return false;
 	}
 	// game_log("(%d,%d)\n",checkx,checky);
-	if (is_wall_block(M, checkx, checky) || is_room_block(M, checkx, checky))
-		return false;
+	if(!CM_L) //#TODO-CM
+	{
+		if (is_wall_block(M, checkx, checky) || is_room_block(M, checkx, checky))
+			return false;
+	}
+	else
+	{
+		if ( is_room_block(M, checkx, checky))
+			return false;
+	}
+
 
 	return true;
 }
@@ -77,8 +88,8 @@ Pacman *pacman_create()
 	Pacman *pman = (Pacman *)malloc(sizeof(Pacman));
 	if (!pman)
 		return NULL;
-	pman->objData.Coord.x = pman_grid2_x; //24;
-	pman->objData.Coord.y = pman_grid2_y;//24;
+	pman->objData.Coord.x = pman_grid2_x; // 24;
+	pman->objData.Coord.y = pman_grid2_y; // 24;
 	pman->objData.Size.x = block_width;
 	pman->objData.Size.y = block_height;
 

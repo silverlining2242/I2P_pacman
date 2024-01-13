@@ -250,6 +250,7 @@ static void status_update(void)
 			CM_S = false;
 			wasCM_S = false;
 		}
+		CM_L = false;
 	}
 	// draw pmanArea for check collide
 	RecArea pmanArea = getDrawArea((object *)pman, GAME_TICK_CD);
