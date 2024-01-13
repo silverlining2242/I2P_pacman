@@ -27,6 +27,7 @@ bool game_over = false;
 char *beans_text;						 // #add
 extern int Play1Keys[4];		 // #add from shared.c
 extern bool isValidPlay1Key; // #add from shared.c
+extern bool dieAnimDone;		 // #add
 
 /* Internal variables*/
 static ALLEGRO_TIMER *power_up_timer; // why it static??
@@ -36,6 +37,9 @@ static Map *basic_map;
 static Ghost **ghosts;
 bool debug_mode = false;
 bool cheat_mode = false;
+bool CM_K = false;
+bool CM_S = false;
+bool wasCM_S = false; //#add to improve efficiency to avoid reset normal when CM_S not active
 
 /* Declare static function prototypes */
 static void init(void);
@@ -176,12 +180,62 @@ static void status_update(void)
 			// If runs out of time reset all relevant variables and ghost's status back to FREEDOM
 			for (int i = 0; i < GHOST_NUM; i++)
 			{
+				// use toggle to change status
 				// bool setFLEE = (ghosts[i]->status == FREEDOM) ? true : false;
 				ghost_toggle_FLEE(ghosts[i], false);
 			}
 		}
 		// hint: ghost_toggle_FLEE
 		// ghost status to FLEE
+	}
+	// TODO-IF: Cheat Mode
+	if (cheat_mode)
+	{
+		// game_log("cheat_mode in status_update");
+		if(CM_S)
+		{
+			if(!wasCM_S) // only set stop when it's not already stop
+			{
+				for (int i = 0; i < GHOST_NUM; i++)
+					ghost_toggle_STOP(ghosts[i], true);
+				wasCM_S = true;
+			}
+		}
+		else
+		{
+			if(wasCM_S) //reset stop only if prev CM_S is active
+			{
+				for (int i = 0; i < GHOST_NUM; i++)
+					ghost_toggle_STOP(ghosts[i], false);
+				wasCM_S = false;
+			}
+			if(CM_K)
+			{
+				for (int i = 0; i < GHOST_NUM; i++)
+					ghost_toggle_GOIN(ghosts[i], true);
+				CM_K = false; // Reset CM_K
+			}
+		}
+		// if (CM_K)
+		// {
+		// 	for (int i = 0; i < GHOST_NUM; i++)
+		// 	{
+		// 		// bool setFLEE = (ghosts[i]->status == FREEDOM) ? true : false;
+		// 		ghost_toggle_GOIN(ghosts[i], true);
+		// 	}
+		// 	CM_K = false; // reset
+		// }
+		// if (CM_S) 
+		// {
+		// 	for (int i = 0; i < GHOST_NUM; i++)
+		// 		ghost_toggle_STOP(ghosts[i], true);
+		// 	// not reset until press again
+		// }
+		// else // error: keep update to normal so overwrite CM_K
+		// {
+		// 	for (int i = 0; i < GHOST_NUM; i++)
+		// 		ghost_toggle_STOP(ghosts[i], false);
+		// }
 	}
 	// draw pmanArea for check collide
 	RecArea pmanArea = getDrawArea((object *)pman, GAME_TICK_CD);
@@ -194,14 +248,14 @@ static void status_update(void)
 		{
 			continue;
 		}
-		else if (ghosts[i]->status == FREEDOM)
+		else if (ghosts[i]->status == FREEDOM || ghosts[i]->status == STOP) // #add
 		{
 			// $TODO-GC-game_over: use `getDrawArea(..., GAME_TICK_CD)` and `RecAreaOverlap(..., GAME_TICK_CD)` functions to detect if pacman and ghosts collide with each other.
 			// And perform corresponding operations.
 			// [NOTE] You should have some if-else branch here if you want to implement power bean mode.
 			// Uncomment Following Code
 
-			if (!cheat_mode && isCollide)
+			if (isCollide) //(!cheat_mode && isCollide) #add
 			{
 				game_log("collide with ghost %d\n", i);
 				al_rest(1.0);
@@ -215,14 +269,14 @@ static void status_update(void)
 		{
 			// $TODO-GC-PB: if ghost is collided by pacman, it should go back to the cage immediately and come out after a period.
 
-			if (!cheat_mode && isCollide)
+			if (isCollide) //(!cheat_mode && isCollide) //#add
 			{
 				ghost_collided(ghosts[i]); // pacman eat ghost, change ghost status to GO_IN
 			}
 		}
 	}
 }
-extern bool dieAnimDone;
+
 static void update(void)
 {
 
@@ -265,7 +319,7 @@ static void update(void)
 
 		return;
 	}
-	//
+	// $TODO-PB: add all beans finish game
 	if (game_main_Score >= basic_map->beansNum)
 	{
 		game_change_scene(scene_menu_create());
@@ -289,11 +343,17 @@ static void draw(void)
 	beans_text = (char *)malloc(sizeof(char) * 35);
 	sprintf(beans_text, "All: %d    Eat: %d", basic_map->beansNum, game_main_Score);
 	al_draw_text(
-			menuFont,
-			al_map_rgb(255, 255, 0),
-			10, 10,
-			0,
+			menuFont, al_map_rgb(255, 255, 0),
+			10, 10, 0,
 			beans_text);
+	// $TODO-CM: draw on
+	if (cheat_mode)
+	{
+		al_draw_text(
+				menuFont, al_map_rgb(255, 255, 0),
+				650, 5, 0,
+				"Cheat On");
+	}
 
 	draw_map(basic_map);
 
@@ -340,6 +400,8 @@ static void printinfo(void)
 
 static void destroy(void)
 {
+	// TODO-CM: make sure cheat mode back to false #add
+	cheat_mode = false;
 	// $TODO-GC-memory: free map array, Pacman and ghosts
 	// pacman
 	pacman_destroy(pman);
@@ -369,7 +431,7 @@ static void on_key_down(int key_code)
 {
 	if (isValidPlay1Key)
 	{
-		// can't use case Play1Keys[0]: The case labels in a switch statement must be constant expressions known at compile time, but the contents of Play1Keys are determined at runtime.
+		// can't use switch case Play1Keys[0]: The case labels in a switch statement must be constant expressions known at compile time, but the contents of Play1Keys are determined at runtime.
 		if (key_code == Play1Keys[0])
 			pacman_NextMove(pman, UP);
 		else if (key_code == Play1Keys[2])
@@ -403,10 +465,16 @@ static void on_key_down(int key_code)
 	{
 	case ALLEGRO_KEY_C:
 		cheat_mode = !cheat_mode;
-		if (cheat_mode)
-			printf("cheat mode on\n");
+		if (!cheat_mode)
+		{
+			CM_S = false;
+			CM_K = false;
+			printf("cheat mode off and turn of CM_S, CMK\n");
+		}
 		else
-			printf("cheat mode off\n");
+		{
+			printf("cheat mode on\n");
+		}
 		break;
 	case ALLEGRO_KEY_G:
 		debug_mode = !debug_mode;
@@ -414,8 +482,24 @@ static void on_key_down(int key_code)
 	default:
 		break;
 	}
-}
 
+	if (cheat_mode)
+	{
+		switch (key_code)
+		{
+		case ALLEGRO_KEY_K:
+			CM_K = !CM_K;
+			printf("ghosts start going back to the cage\n");
+			break;
+		case ALLEGRO_KEY_S:
+			CM_S = !CM_S;
+			printf("ghosts stop moving\n");
+			break;
+		default:
+			break;
+		}
+	}
+}
 
 static void on_mouse_down(int btn, int x, int y, int dz)
 {

@@ -280,8 +280,10 @@ bool ghost_movable(const Ghost *ghost, const Map *M, Directions targetDirec, boo
 	case RIGHT:
 		checkx += 1;
 		break;
+	case NONE: // #add TODO-CM: to stop ghost
+		break;
 	default:
-		// for none UP, DOWN, LEFT, RIGHT direction u should return false.
+		// for none above direction u should return false.
 		return false;
 	}
 	// game_log("(%d,%d)\n",checkx,checky);
@@ -334,5 +336,40 @@ void ghost_collided(Ghost *ghost)
 	{
 		ghost->status = GO_IN;
 		ghost->speed = 4; // Go back to cage faster
+	}
+}
+
+void ghost_toggle_GOIN(Ghost *ghost, bool setGOIN) // #add
+{
+	// TODO-IF: cheat mode
+
+	if (setGOIN) // set all ghosts to GO_IN
+	{
+		ghost->status = GO_IN;
+		ghost->speed = 4;
+	}
+	else
+	{
+
+		if (ghost->status == GO_IN)
+		{
+			ghost->status = FREEDOM;
+			ghost->speed = 2;
+		}
+	}
+}
+void ghost_toggle_STOP(Ghost *ghost, bool setSTOP) // #add
+{
+	// TODO-IF: cheat mode
+
+	if (setSTOP) // set all ghosts to GO_IN
+	{
+		ghost->status = STOP;
+		// ghost->speed = 0; //it will cause utility movetime() func to divide 0 and cause bus error, use status to control to stop ghost 
+	}
+	else
+	{
+		ghost->status = FREEDOM;
+		ghost->speed = 2;
 	}
 }

@@ -19,6 +19,7 @@ static void ghost_move_script_BLOCKED(Ghost *ghost, Map *M);
 static void ghost_move_script_GO_IN(Ghost *ghost, Map *M);
 static void ghost_move_script_GO_OUT(Ghost *ghost, Map *M);
 static void ghost_move_script_FLEE(Ghost *ghost, Map *M, const Pacman *const pacman);
+static void ghost_move_script_STOP(Ghost *ghost, Map *M); // #add
 
 static void ghost_move_script_FREEDOM_random(Ghost *ghost, Map *M)
 {
@@ -128,6 +129,11 @@ static void ghost_move_script_GO_OUT(Ghost *ghost, Map *M)
 		ghost->status = FREEDOM;
 }
 
+static void ghost_move_script_STOP(Ghost *ghost, Map *M) // #add
+{
+	ghost->objData.nextTryMove = NONE;
+	ghost_NextMove(ghost, ghost->objData.nextTryMove);
+}
 static void ghost_move_script_FLEE(Ghost *ghost, Map *M, const Pacman *const pacman)
 {
 	// $TODO-PB: escape from pacman
@@ -187,8 +193,8 @@ static void ghost_move_script_FLEE(Ghost *ghost, Map *M, const Pacman *const pac
 		for (Directions i = 1; i <= 4; i++)																										// i is directions
 			if (i != counter_one && i != shortestDirection && ghost_movable(ghost, M, i, true)) // set true to break out the ghost block B
 				proba[cnt++] = i;																																	// available movable directions
-		if (cnt >= 2 ) // beside contest and short has two choice
-		{ // ghost->objData.nextTryMove = next; random choose available move
+		if (cnt >= 2)																																					// beside contest and short has two choice
+		{																																											// ghost->objData.nextTryMove = next; random choose available move
 			ghost_NextMove(ghost, proba[generateRandomNumber(1, cnt - 1)]);
 		}
 		else if (cnt == 1 && ghost_movable(ghost, M, shortestDirection, true))
@@ -229,6 +235,9 @@ void ghost_move_script_random(Ghost *ghost, Map *M, Pacman *pacman)
 		break;
 	case FLEE:
 		ghost_move_script_FLEE(ghost, M, pacman);
+		break;
+	case STOP:
+		ghost_move_script_STOP(ghost, M);
 		break;
 	default:
 		break;
