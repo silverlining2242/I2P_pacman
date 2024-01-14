@@ -3,15 +3,15 @@
 #include "pacman_obj.h"
 #include "map.h"
 /* Shared variables */
-#define GO_OUT_TIME 256
+#define GO_OUT_TIME 256 // #change to decrease?
 extern uint32_t GAME_TICK_CD;
 extern uint32_t GAME_TICK;
 extern uint32_t POWERUP_TICK;
 extern ALLEGRO_TIMER *game_tick_timer;
 extern ALLEGRO_TIMER *power_up_tick_timer;
 extern const int cage_grid_x, cage_grid_y;
-extern bool compete_mode; //TODO-MC2
-extern bool CM_S, CM_K; //TODO-MC2: solve conflic with CM
+extern bool compete_mode; // TODO-MC2
+extern bool CM_S, CM_K;		// TODO-MC2: solve conflic with CM
 
 /* Declare static function prototypes */
 // static function reference: https://stackoverflow.com/questions/558122/what-is-a-static-function-in-c
@@ -142,34 +142,10 @@ static void ghost_move_script_CONTROL(Ghost *ghost, Map *M) // #add
 	game_log("ghost_move_script_CONTROL executed");
 	// if control by user, the ghost_NextMove() func is called by KEYBOARD, not by script
 	// there is new nextTryMove generated after triggered by KEYBOARD
-	// check nextTryMove movable
-	int probe_x = ghost->objData.Coord.x, probe_y = ghost->objData.Coord.y;
-	if (ghost_movable(ghost, M, ghost->objData.nextTryMove, true))
-		ghost->objData.preMove = ghost->objData.nextTryMove;
-	else if (!ghost_movable(ghost, M, ghost->objData.preMove, true))
-		return;
-	// use preMove to actually move
-	switch (ghost->objData.preMove)
-	{
-	case UP:
-		ghost->objData.Coord.y -= 1;
-		ghost->objData.preMove = UP;
-		break;
-	case DOWN:
-		ghost->objData.Coord.y += 1;
-		ghost->objData.preMove = DOWN;
-		break;
-	case LEFT:
-		ghost->objData.Coord.x -= 1;
-		ghost->objData.preMove = LEFT;
-		break;
-	case RIGHT:
-		ghost->objData.Coord.x += 1;
-		ghost->objData.preMove = RIGHT;
-		break;
-	default:
-		break;
-	}
+	// ghost_move_script_random do:
+	// 1. use nextTry Move to check movable
+	// 2. actually move
+	// 3. update facing and TICK
 	// ghost->objData.facing = ghost->objData.preMove; //already include in ghost_move_script_random
 	// ghost->objData.moveCD = GAME_TICK_CD;
 }
@@ -258,6 +234,10 @@ void ghost_move_script_random(Ghost *ghost, Map *M, Pacman *pacman)
 		if (al_get_timer_count(game_tick_timer) > GO_OUT_TIME)
 			ghost->status = GO_OUT;
 		break;
+	case CONTROLLED:
+		if (!CM_S && !CM_K) // TODO-MC2: highest priority put before FREEDOM , conflict with cheat mode
+			ghost_move_script_CONTROL(ghost, M);
+		break;
 	case FREEDOM:
 		ghost_move_script_FREEDOM_random(ghost, M);
 		break;
@@ -278,10 +258,6 @@ void ghost_move_script_random(Ghost *ghost, Map *M, Pacman *pacman)
 	case STOP:
 		ghost_move_script_STOP(ghost, M);
 		break;
-	case CONTROLLED:
-		if(!CM_S && !CM_K) //TODO-MC2: has logic conflict with cheat mode
-			ghost_move_script_CONTROL(ghost, M);
-		break;
 	default:
 		break;
 	}
@@ -289,12 +265,12 @@ void ghost_move_script_random(Ghost *ghost, Map *M, Pacman *pacman)
 	if (ghost_movable(ghost, M, ghost->objData.nextTryMove, false)) // nextTryMove is for check
 	{
 		ghost->objData.preMove = ghost->objData.nextTryMove;
-		ghost->objData.nextTryMove = NONE;
+		//ghost->objData.nextTryMove = NONE; //#change this control if we need to press each time!
 	}
 	else if (!ghost_movable(ghost, M, ghost->objData.preMove, false))
 		return;
 
-	switch (ghost->objData.preMove) // use preMove to decide where to walk
+	switch (ghost->objData.preMove) // use preMove to actual move position
 	{
 	case RIGHT:
 		ghost->objData.Coord.x += 1;
@@ -311,7 +287,7 @@ void ghost_move_script_random(Ghost *ghost, Map *M, Pacman *pacman)
 	default:
 		break;
 	}
-	ghost->objData.facing = ghost->objData.preMove;
+	ghost->objData.facing = ghost->objData.preMove; // update for draw
 	ghost->objData.moveCD = GAME_TICK_CD;
 }
 
@@ -328,6 +304,10 @@ void ghost_move_script_shortest_path(Ghost *ghost, Map *M, Pacman *pacman)
 		ghost_move_script_BLOCKED(ghost, M);
 		if (al_get_timer_count(game_tick_timer) - ghost->go_in_time > GO_OUT_TIME)
 			ghost->status = GO_OUT;
+		break;
+	case CONTROLLED:
+		if (!CM_S && !CM_K) // // TODO-MC2: highest priority put before FREEDOM , conflict with cheat mode
+			ghost_move_script_CONTROL(ghost, M);
 		break;
 	case FREEDOM:
 		ghost_move_script_FREEDOM_shortest_path(ghost, M, pacman);
@@ -347,8 +327,8 @@ void ghost_move_script_shortest_path(Ghost *ghost, Map *M, Pacman *pacman)
 	case FLEE:
 		ghost_move_script_FLEE(ghost, M, pacman);
 		break;
-	case CONTROLLED:
-		ghost_move_script_CONTROL(ghost, M);
+	case STOP:
+		ghost_move_script_STOP(ghost, M);
 		break;
 	default:
 		break;
@@ -357,7 +337,7 @@ void ghost_move_script_shortest_path(Ghost *ghost, Map *M, Pacman *pacman)
 	if (ghost_movable(ghost, M, ghost->objData.nextTryMove, false))
 	{
 		ghost->objData.preMove = ghost->objData.nextTryMove;
-		ghost->objData.nextTryMove = NONE;
+		// ghost->objData.nextTryMove = NONE; //#change this control if we need to press each time!
 	}
 	else if (!ghost_movable(ghost, M, ghost->objData.preMove, false))
 		return;

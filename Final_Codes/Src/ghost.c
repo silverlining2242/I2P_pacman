@@ -324,7 +324,7 @@ void ghost_toggle_FLEE(Ghost *ghost, bool setFLEE)
 	if (setFLEE)
 	{
 		// set FREEDOM ghost's status to FLEE and make them slow
-		if (ghost->status == FREEDOM)
+		if (ghost->status == FREEDOM || ghost->status == CONTROLLED)
 		{
 			ghost->status = FLEE;
 			ghost->speed = 1; // should be 1, change to 2 for testing
@@ -389,8 +389,11 @@ void ghost_toggle_CONTROL(Ghost *ghost, bool setCONTROL) // #add
 	// TODO-MC2
 	if (setCONTROL) 
 	{
-		ghost->status = CONTROLLED;
-		ghost->speed = 2;
+		if(ghost->status ==FREEDOM) //only if previous status is FREEDOM can set CONTROL
+		{
+			ghost->status = CONTROLLED;
+			ghost->speed = 2;
+		}
 	}
 	else
 	{

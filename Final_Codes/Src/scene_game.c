@@ -315,11 +315,11 @@ static void status_update(void)
 	if (compete_mode)
 	{
 		ghost_toggle_CONTROL(ghosts[compete_idx], true);
-		for (int i = 0; i < GHOST_NUM; i++)
-		{
-			if (i != compete_idx) // rest ghost is free
-				ghost_toggle_CONTROL(ghosts[i], false);
-		}
+		// for (int i = 0; i < GHOST_NUM; i++) //rest ghost should remain its movement
+		// {
+		// 	if (i != compete_idx) // rest ghost is free
+		// 		ghost_toggle_CONTROL(ghosts[i], false);
+		// }
 	}
 
 	// draw pmanArea for check collide
@@ -339,7 +339,7 @@ static void status_update(void)
 			{
 				continue;
 			}
-			else if (ghosts[i]->status == FREEDOM || ghosts[i]->status == STOP) // #add
+			else if (ghosts[i]->status == FREEDOM || ghosts[i]->status == STOP || ghosts[i]->status == CONTROLLED) // #TODO-MC
 			{
 				// $TODO-GC-game_over: use `getDrawArea(..., GAME_TICK_CD)` and `RecAreaOverlap(..., GAME_TICK_CD)` functions to detect if pacman and ghosts collide with each other.
 				// And perform corresponding operations.
@@ -690,6 +690,7 @@ static void on_key_down2(int key_code) // #TODO-MC, TODO-MC2
 			printf("Player2 press Right\n");
 			break;
 		case ALLEGRO_KEY_SPACE:
+			ghost_toggle_CONTROL(ghosts[compete_idx], false); //*set prev one to normal
 			compete_idx = (compete_idx + 1) % 4;
 			printf("Player2 switch next ghost %d\n", compete_idx);
 			break;
