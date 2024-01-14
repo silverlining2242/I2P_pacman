@@ -10,6 +10,8 @@ extern uint32_t POWERUP_TICK;
 extern ALLEGRO_TIMER *game_tick_timer;
 extern ALLEGRO_TIMER *power_up_tick_timer;
 extern const int cage_grid_x, cage_grid_y;
+extern bool compete_mode; //TODO-MC2
+extern bool CM_S, CM_K; //TODO-MC2: solve conflic with CM
 
 /* Declare static function prototypes */
 // static function reference: https://stackoverflow.com/questions/558122/what-is-a-static-function-in-c
@@ -19,7 +21,7 @@ static void ghost_move_script_BLOCKED(Ghost *ghost, Map *M);
 static void ghost_move_script_GO_IN(Ghost *ghost, Map *M);
 static void ghost_move_script_GO_OUT(Ghost *ghost, Map *M);
 static void ghost_move_script_FLEE(Ghost *ghost, Map *M, const Pacman *const pacman);
-static void ghost_move_script_STOP(Ghost *ghost, Map *M); // #add
+static void ghost_move_script_STOP(Ghost *ghost, Map *M);		 // #add
 static void ghost_move_script_CONTROL(Ghost *ghost, Map *M); // #add TODO-MC2
 
 static void ghost_move_script_FREEDOM_random(Ghost *ghost, Map *M)
@@ -91,13 +93,13 @@ static void ghost_move_script_BLOCKED(Ghost *ghost, Map *M)
 	switch (ghost->objData.preMove)
 	{
 	case UP:
-		if (ghost->objData.Coord.y == cage_grid_x ) //#change 10
+		if (ghost->objData.Coord.y == cage_grid_x) // #change 10
 			ghost_NextMove(ghost, DOWN);
 		else
 			ghost_NextMove(ghost, UP);
 		break;
 	case DOWN:
-		if (ghost->objData.Coord.y == cage_grid_y ) //12
+		if (ghost->objData.Coord.y == cage_grid_y) // 12
 			ghost_NextMove(ghost, UP);
 		else
 			ghost_NextMove(ghost, DOWN);
@@ -138,8 +140,38 @@ static void ghost_move_script_STOP(Ghost *ghost, Map *M) // #add
 static void ghost_move_script_CONTROL(Ghost *ghost, Map *M) // #add
 {
 	game_log("ghost_move_script_CONTROL executed");
-	ghost->objData.nextTryMove = NONE;
-	ghost_NextMove(ghost, ghost->objData.nextTryMove);
+	// if control by user, the ghost_NextMove() func is called by KEYBOARD, not by script
+	// there is new nextTryMove generated after triggered by KEYBOARD
+	// check nextTryMove movable
+	int probe_x = ghost->objData.Coord.x, probe_y = ghost->objData.Coord.y;
+	if (ghost_movable(ghost, M, ghost->objData.nextTryMove, true))
+		ghost->objData.preMove = ghost->objData.nextTryMove;
+	else if (!ghost_movable(ghost, M, ghost->objData.preMove, true))
+		return;
+	// use preMove to actually move
+	switch (ghost->objData.preMove)
+	{
+	case UP:
+		ghost->objData.Coord.y -= 1;
+		ghost->objData.preMove = UP;
+		break;
+	case DOWN:
+		ghost->objData.Coord.y += 1;
+		ghost->objData.preMove = DOWN;
+		break;
+	case LEFT:
+		ghost->objData.Coord.x -= 1;
+		ghost->objData.preMove = LEFT;
+		break;
+	case RIGHT:
+		ghost->objData.Coord.x += 1;
+		ghost->objData.preMove = RIGHT;
+		break;
+	default:
+		break;
+	}
+	// ghost->objData.facing = ghost->objData.preMove; //already include in ghost_move_script_random
+	// ghost->objData.moveCD = GAME_TICK_CD;
 }
 static void ghost_move_script_FLEE(Ghost *ghost, Map *M, const Pacman *const pacman)
 {
@@ -247,7 +279,8 @@ void ghost_move_script_random(Ghost *ghost, Map *M, Pacman *pacman)
 		ghost_move_script_STOP(ghost, M);
 		break;
 	case CONTROLLED:
-		ghost_move_script_CONTROL(ghost, M);
+		if(!CM_S && !CM_K) //TODO-MC2: has logic conflict with cheat mode
+			ghost_move_script_CONTROL(ghost, M);
 		break;
 	default:
 		break;
@@ -313,6 +346,9 @@ void ghost_move_script_shortest_path(Ghost *ghost, Map *M, Pacman *pacman)
 		break;
 	case FLEE:
 		ghost_move_script_FLEE(ghost, M, pacman);
+		break;
+	case CONTROLLED:
+		ghost_move_script_CONTROL(ghost, M);
 		break;
 	default:
 		break;

@@ -49,8 +49,8 @@ bool wasCM_S = false; // #add to improve efficiency to avoid reset normal when C
 bool CM_L = false;
 bool P2block = false;		// TODO-MC
 Pair_IntInt pman2Cordi; // TODO-MC
-bool compete_mode = true;
-int compete_idx = 0;
+bool compete_mode = true; //TODO-MC2
+int compete_idx = 0; //TODO-MC2
 
 /* Declare static function prototypes */
 static void init(void);
@@ -315,9 +315,9 @@ static void status_update(void)
 	if (compete_mode)
 	{
 		ghost_toggle_CONTROL(ghosts[compete_idx], true);
-		for(int i = 0; i <GHOST_NUM; i++)
+		for (int i = 0; i < GHOST_NUM; i++)
 		{
-			if(i!=compete_idx) //rest ghost is free
+			if (i != compete_idx) // rest ghost is free
 				ghost_toggle_CONTROL(ghosts[i], false);
 		}
 	}
@@ -674,23 +674,23 @@ static void on_key_down2(int key_code) // #TODO-MC, TODO-MC2
 		switch (key_code)
 		{
 		case ALLEGRO_KEY_UP:
-			// pacman_NextMove(pmans[1], UP);
+			ghost_NextMove(ghosts[compete_idx], UP);
 			printf("Player2 press UP\n");
 			break;
 		case ALLEGRO_KEY_LEFT:
-			// pacman_NextMove(pmans[1], LEFT);
+			ghost_NextMove(ghosts[compete_idx], LEFT);
 			printf("Player2 press Left\n");
 			break;
 		case ALLEGRO_KEY_DOWN:
-			// pacman_NextMove(pmans[1], DOWN);
+			ghost_NextMove(ghosts[compete_idx], DOWN);
 			printf("Player2 press Down\n");
 			break;
 		case ALLEGRO_KEY_RIGHT:
-			// pacman_NextMove(pmans[1], RIGHT);
+			ghost_NextMove(ghosts[compete_idx], RIGHT);
 			printf("Player2 press Right\n");
 			break;
 		case ALLEGRO_KEY_SPACE:
-			compete_idx = (compete_idx + 1 ) % 4;
+			compete_idx = (compete_idx + 1) % 4;
 			printf("Player2 switch next ghost %d\n", compete_idx);
 			break;
 		case ALLEGRO_KEY_G:

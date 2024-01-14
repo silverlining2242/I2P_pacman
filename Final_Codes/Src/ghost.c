@@ -193,7 +193,7 @@ void ghost_draw(Ghost *ghost) // func to draw single ghost
 													drawArea.x + fix_draw_pixel_offset_x, drawArea.y + fix_draw_pixel_offset_y, // dx, dy
 													draw_region, draw_region, 0);
 	}
-	else
+	else //FREEDOM and CONTROL
 	{
 		// $TODO-GC-animation: ghost animation
 		// *draw ghost->move_sprite
