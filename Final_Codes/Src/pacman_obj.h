@@ -27,6 +27,7 @@ typedef struct Pacman
 	ALLEGRO_BITMAP *die_sprite;
 	ALLEGRO_BITMAP *block_sprite; //#TODO-MC
 	ALLEGRO_TIMER *cool_counter; //#TODO-MC
+	ALLEGRO_TIMER *reverse_counter; //bonus
 
 } Pacman;
 

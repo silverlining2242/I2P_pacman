@@ -87,7 +87,7 @@ static void draw(void)
 	// Draw Multi mode on/ off
 	al_draw_text(menuFont, al_map_rgb(255, 255, 0), 50, 200, ALLEGRO_ALIGN_LEFT, "MUTIPLAYER MODE:");
 	al_draw_text(menuFont, al_map_rgb(255, 255, 0), 120, 270, ALLEGRO_ALIGN_LEFT, "COLLABORATE  KEY: / ");
-	al_draw_text(menuFont, al_map_rgb(255, 255, 0), 120, 340, ALLEGRO_ALIGN_LEFT, "COMPETE          KEY: SPACE");
+	al_draw_text(menuFont, al_map_rgb(255, 255, 0), 120, 340, ALLEGRO_ALIGN_LEFT, "COMPETE           KEY: SPACE");
 	al_draw_text(menuFont, al_map_rgb(255, 255, 0), 120, 400, ALLEGRO_ALIGN_LEFT, "PLAYER 2 KEY: REGULAR KEY");
 	// draw tick
 	setRecArea(&Checkbox1, 50, 250, 50, 50);
@@ -101,6 +101,15 @@ static void draw(void)
 		al_draw_filled_rectangle(55, 255, 95, 295, al_map_rgb(255, 255, 0)); // x y start x y end
 	if (compete_mode)
 		al_draw_filled_rectangle(55, 325, 95, 365, al_map_rgb(255, 255, 0)); // x y start x y end
+
+	// draw back
+	al_draw_text(
+			menuFont,
+			al_map_rgb(255, 255, 255),
+			800 / 2,
+			800 - 150,
+			ALLEGRO_ALIGN_CENTER,
+			"BACK TO MENU PRESS <Q>");
 }
 
 static void on_mouse_move(int a, int mouse_x, int mouse_y, int f)
@@ -166,7 +175,7 @@ static void on_key_down(int keycode)
 	{
 		switch (keycode)
 		{
-		case ALLEGRO_KEY_P:
+		case ALLEGRO_KEY_Q:
 			game_change_scene(scene_menu_create());
 			break;
 		default:

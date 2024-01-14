@@ -31,6 +31,7 @@ uint32_t GAME_TICK = 0;
 uint32_t POWERUP_TICK = 0;
 uint32_t PMANDIE_TICK = 0;
 uint32_t PMAN2COOL_TICK = 0; //#add TODO-MC
+uint32_t REVERSE_TICK = 0; //bonus
 const uint32_t GAME_TICK_CD = 64;
 ALLEGRO_TIMER *game_tick_timer;
 extern bool gameDone;

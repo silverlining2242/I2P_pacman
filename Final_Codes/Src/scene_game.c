@@ -15,7 +15,7 @@
 // Just modify the GHOST_NUM to 1
 // #define GHOST_NUM 4
 int GHOST_NUM = 4;
-int PMAN_NUM = 1; //TODO-MC
+int PMAN_NUM = 1; // TODO-MC
 // $TODO-GC-ghost: create a least FOUR ghost!
 /* global variables*/
 extern const uint32_t GAME_TICK_CD;
@@ -23,6 +23,7 @@ extern uint32_t GAME_TICK;
 extern uint32_t POWERUP_TICK;
 extern uint32_t PMANDIE_TICK;
 extern uint32_t PMAN2COOL_TICK;
+extern uint32_t REVERSE_TICK;
 extern ALLEGRO_TIMER *game_tick_timer;
 int game_main_Score = 0;
 bool game_over = false;
@@ -35,8 +36,9 @@ extern bool dieAnimDone;		 // #add
 /* Internal variables*/
 static ALLEGRO_TIMER *power_up_timer; // why it static??
 static const int power_up_duration = 10;
-static const int pman2_cool_duration = 3;
-static Pacman **pmans; // #change
+static const int pman2_cool_duration = 5;
+static const int reverse_duration = 10; // bonus
+static Pacman **pmans;									// #change
 // static Pacman *pman;
 // static Pacman *pman2; // #change
 static Map *basic_map;
@@ -47,10 +49,11 @@ bool CM_K = false; // TODO-CM
 bool CM_S = false;
 bool wasCM_S = false; // #add to improve efficiency to avoid reset normal when CM_S not active
 bool CM_L = false;
-bool P2block = false;		// TODO-MC
-Pair_IntInt pman2Cordi; // TODO-MC
-bool compete_mode = false; //TODO-MC2
-int compete_idx = 0; //TODO-MC2
+bool P2block = false;			 // TODO-MC
+Pair_IntInt pman2Cordi;		 // TODO-MC
+bool compete_mode = false; // TODO-MC2
+int compete_idx = 0;			 // TODO-MC2
+bool reverseMove = false;	 // bonus
 
 /* Declare static function prototypes */
 static void init(void);
@@ -69,6 +72,7 @@ static void draw_hitboxes(void);
 
 /*self function defined*/
 Pair_IntInt get_pman2_position(const Pacman *pacman); // TODO-MC
+RecArea *pmansArea;// = malloc(sizeof(RecArea) * PMAN_NUM); //#FIX
 
 static void init(void)
 {
@@ -183,6 +187,12 @@ static void checkItem(void) // only for player 1
 		POWERUP_TICK = set_power_up_timer_tick(1); // mode 1 to init
 		game_log("power_up_timer start at : %dn", POWERUP_TICK);
 		break;
+	case 'E': // bonus
+		reverseMove = true;
+		pacman_eatItem(pmans[0], 'E');	// but no sound
+		set_reverse_timer(pmans[0], 1); // start to count
+		game_log("start being reversed move");
+		break;
 	default:
 		break;
 	}
@@ -192,7 +202,7 @@ static void checkItem(void) // only for player 1
 	if (basic_map->map[Grid_y][Grid_x] == '.')
 		basic_map->map[Grid_y][Grid_x] = ' ';
 	// PB
-	if (basic_map->map[Grid_y][Grid_x] == 'P')
+	if (basic_map->map[Grid_y][Grid_x] == 'P' || basic_map->map[Grid_y][Grid_x] == 'E')
 		basic_map->map[Grid_y][Grid_x] = ' ';
 }
 static void status_update(void)
@@ -215,8 +225,8 @@ static void status_update(void)
 			pmans[0]->powerUp = false;
 			game_log(" %d exceed %d, switch powerUP to %d\n", POWERUP_TICK, power_up_duration, pmans[0]->powerUp);
 			set_power_up_timer_tick(0); // mode 0 to stop and reset count to 0
-			game_log("powerup_tick: %d\n", POWERUP_TICK);
-			// call function to stop POWERUPSOUND
+			// game_log("powerup_tick: %d\n", POWERUP_TICK);
+			//  call function to stop POWERUPSOUND
 			stop_PACMAN_POWERUPSOUND();
 
 			// If runs out of time reset all relevant variables and ghost's status back to FREEDOM
@@ -229,6 +239,17 @@ static void status_update(void)
 		}
 		// hint: ghost_toggle_FLEE
 		// ghost status to FLEE
+	}
+	// bonus //only for Player 1
+	if (reverseMove)
+	{
+		REVERSE_TICK = al_get_timer_count(pmans[0]->reverse_counter);
+		if (REVERSE_TICK >= reverse_duration)
+		{
+			reverseMove = false;
+			game_log("%d exceed %d, end reverseMove\n", REVERSE_TICK, reverse_duration);
+			set_reverse_timer(pmans[0], 0);
+		}
 	}
 	// TODO-IF: Cheat Mode
 	if (cheat_mode)
@@ -324,7 +345,7 @@ static void status_update(void)
 
 	// draw pmanArea for check collide
 	// RecArea pmanArea = getDrawArea((object *)pman, GAME_TICK_CD);
-	RecArea *pmansArea = malloc(sizeof(RecArea) * PMAN_NUM);
+	pmansArea = malloc(sizeof(RecArea) * PMAN_NUM); //#FIX
 	for (int i = 0; i < PMAN_NUM; i++)
 		pmansArea[i] = getDrawArea((object *)pmans[i], GAME_TICK_CD);
 
@@ -511,37 +532,51 @@ static void printinfo(void)
 static void destroy(void)
 {
 	// TODO-CM: make sure cheat mode back to false #add
-	cheat_mode = false;
 	P2block = false;
+	cheat_mode = false;
+	CM_K = false; // make sure
+	CM_S = false;
+	wasCM_S = false;
+	CM_L = false;
+	reverseMove = false;
+	// compete mode and PMANS_NUM controlled by setting do not reset
+
 	// $TODO-GC-memory: free map array, Pacman and ghosts
 	// pacman
 	for (int j = 0; j < PMAN_NUM; j++)
-		pacman_destroy(pmans[j]);
-	// pacman_destroy(pman);
-	// pacman_destroy(pman2); // TODO-MC
+	{
+		pacman_destroy(pmans[j]); // TODO-MC
+		pmans[j]=NULL;
+	}
 	// ghost
 	for (int i = 0; i < GHOST_NUM; i++)
 	{
 		ghost_destory(ghosts[i]); // func delete each ghost
+		ghosts[i] =NULL;
 	}
 	// map
 	delete_map(basic_map);
+	basic_map = NULL;
 	// malloc
 	// free(pman); // don't double free!! comment out
-	// free(basic_map);
-	//below need to #FIX
+	// below need to #FIX
 	// if(ghosts) it's free each, we need to free 2d? #FIX
 	// 	free(ghosts);
 	// if(pmans)
 	// 	free(pmans);
-	if(beans_text)
+	if (beans_text)
 		free(beans_text);
-	if(cool_text)
+	if (cool_text)
 		free(cool_text);
-	// free(ghosts);
-	// free(pmans);
-	// free(beans_text);
-	// free(cool_text);
+	beans_text = cool_text = NULL;
+	// Area?
+	free(pmansArea);
+	pmansArea = NULL;
+	free(ghosts);
+	free(pmans);
+	ghosts = NULL;
+	pmans= NULL;
+
 	// check
 	game_log("scene_game.c destroy() func called\n");
 	for (int i = 0; i < 4; i++)
@@ -557,33 +592,68 @@ static void on_key_down(int key_code)
 	if (isValidPlay1Key)
 	{
 		// can't use switch case Play1Keys[0]: The case labels in a switch statement must be constant expressions known at compile time, but the contents of Play1Keys are determined at runtime.
-		if (key_code == Play1Keys[0])
-			pacman_NextMove(pmans[0], UP);
-		else if (key_code == Play1Keys[2])
-			pacman_NextMove(pmans[0], LEFT);
-		else if (key_code == Play1Keys[1])
-			pacman_NextMove(pmans[0], DOWN);
-		else if (key_code == Play1Keys[3])
-			pacman_NextMove(pmans[0], RIGHT);
+		if (!reverseMove)
+		{
+			if (key_code == Play1Keys[0])
+				pacman_NextMove(pmans[0], UP);
+			else if (key_code == Play1Keys[2])
+				pacman_NextMove(pmans[0], LEFT);
+			else if (key_code == Play1Keys[1])
+				pacman_NextMove(pmans[0], DOWN);
+			else if (key_code == Play1Keys[3])
+				pacman_NextMove(pmans[0], RIGHT);
+		}
+		else // reverse mode
+		{
+			if (key_code == Play1Keys[0])
+				pacman_NextMove(pmans[0], DOWN);
+			else if (key_code == Play1Keys[2])
+				pacman_NextMove(pmans[0], RIGHT);
+			else if (key_code == Play1Keys[1])
+				pacman_NextMove(pmans[0], UP);
+			else if (key_code == Play1Keys[3])
+				pacman_NextMove(pmans[0], LEFT);
+		}
 	}
 	else
 	{
-		switch (key_code)
+		if (!reverseMove)
 		{
-		// TODO-HACKATHON 1-1: Use allegro pre-defined enum ALLEGRO_KEY_<KEYNAME> to controll pacman movement
-		// we provided you a function `pacman_NextMove` to set the pacman's next move direction.
-		case ALLEGRO_KEY_W:
-			pacman_NextMove(pmans[0], UP);
-			break;
-		case ALLEGRO_KEY_A:
-			pacman_NextMove(pmans[0], LEFT);
-			break;
-		case ALLEGRO_KEY_S:
-			pacman_NextMove(pmans[0], DOWN);
-			break;
-		case ALLEGRO_KEY_D:
-			pacman_NextMove(pmans[0], RIGHT);
-			break;
+			switch (key_code)
+			{
+			// TODO-HACKATHON 1-1: Use allegro pre-defined enum ALLEGRO_KEY_<KEYNAME> to controll pacman movement
+			// we provided you a function `pacman_NextMove` to set the pacman's next move direction.
+			case ALLEGRO_KEY_W:
+				pacman_NextMove(pmans[0], UP);
+				break;
+			case ALLEGRO_KEY_A:
+				pacman_NextMove(pmans[0], LEFT);
+				break;
+			case ALLEGRO_KEY_S:
+				pacman_NextMove(pmans[0], DOWN);
+				break;
+			case ALLEGRO_KEY_D:
+				pacman_NextMove(pmans[0], RIGHT);
+				break;
+			}
+		}
+		else // reverse mode
+		{
+			switch (key_code)
+			{
+			case ALLEGRO_KEY_W:
+				pacman_NextMove(pmans[0], DOWN);
+				break;
+			case ALLEGRO_KEY_A:
+				pacman_NextMove(pmans[0], RIGHT);
+				break;
+			case ALLEGRO_KEY_S:
+				pacman_NextMove(pmans[0], UP);
+				break;
+			case ALLEGRO_KEY_D:
+				pacman_NextMove(pmans[0], LEFT);
+				break;
+			}
 		}
 	}
 	switch (key_code)
@@ -810,6 +880,25 @@ void set_cool_timer_pman2(Pacman *pman, int mode) // TODO-MC
 			al_stop_timer(pman->cool_counter);
 		al_set_timer_count(pman->cool_counter, 0);
 		PMAN2COOL_TICK = 0;
+	}
+	return;
+}
+
+void set_reverse_timer(Pacman *pman, int mode)
+{
+	if (mode == 1)
+	{
+		if (al_get_timer_started(pman->reverse_counter)) // if already start, then stop
+			al_stop_timer(pman->reverse_counter);
+		al_set_timer_count(pman->reverse_counter, 0); // reset timer to 0 and restart
+		al_start_timer(pman->reverse_counter);
+	}
+	if (mode == 0)
+	{
+		if (al_get_timer_started(pman->reverse_counter)) // if already start, then stop
+			al_stop_timer(pman->reverse_counter);
+		al_set_timer_count(pman->reverse_counter, 0);
+		REVERSE_TICK = 0;
 	}
 	return;
 }

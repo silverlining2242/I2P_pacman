@@ -7,6 +7,7 @@
 #define QUEUE_SIZE 3000
 #define MAX_CAGES 20
 #define MAX_PMAN 10
+//#define MAX_FRUITS 1
 /*global variables*/
 // [ NOTE ]
 const int block_width = 21, block_height = 21;	// the pixel size of a "block"
@@ -17,9 +18,12 @@ const int four_probe[4][2] = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
 static void draw_block_index(const Map *M, int row, int col);
 static void draw_bean(const Map *M, const int row, const int col);
 static void draw_power_bean(const Map *M, const int row, const int col);
+static void draw_poison(const Map *M, const int row, const int col);
+//static ALLEGRO_BITMAP *fruitImg = NULL;
 
 Cage_grid *Cages;		// #add
 Pair_IntInt *pmanP; // #add
+//Pair_IntInt *fruits; //bonus
 
 const char *nthu_map[] = {
 		"#####################################",
@@ -42,12 +46,12 @@ const char *nthu_map[] = {
 		"#..................................#",
 		"#.######.###.##########.######.###.#",
 		"#.#    #.###.#####   #.........# #.#",
-		"#.######.........#####.###.###.# #.#",
+		"#.######...E.....#####.###.###.# #.#",
 		"#........#######.......# #.# #.# #.#",
 		"#.######.#     #####.### #.# #.###.#",
 		"#.#    #.###########.#####.###.....#",
-		"#.######.#.....P........0....#.###.#",
-		"#..........#########.#######.#.# #.#",
+		"#.######.#.....PE.......0....#.###.#",
+		"#..E.......#########.#######.#.# #.#",
 		"#.#######.##########.#     #...# #.#",
 		"#.#######............#######.#.###.#",
 		"#.........##########.......0.#.....#",
@@ -103,6 +107,7 @@ Map *create_map(const char *filepath)
 	M->map = (char **)malloc(sizeof(char *) * M->row_num);
 	Cages = (Cage_grid *)malloc(sizeof(Cage_grid) * MAX_CAGES);
 	pmanP = (Pair_IntInt *)malloc(sizeof(Pair_IntInt) * MAX_PMAN);
+	//fruits = (Pair_IntInt *)malloc(sizeof(Pair_IntInt) * MAX_FRUITS);
 
 	if (!M->map)
 	{
@@ -119,9 +124,10 @@ Map *create_map(const char *filepath)
 		}
 	}
 
-	M->wallnum = M->beansCount = 0; // * Record the number of beans and walls, which can be used to print score or other usage.
+	M->wallnum = M->beansCount = M->poison_num = 0; // * Record the number of beans and walls, which can be used to print score or other usage.
 	int cages_idx = 0;
 	int pmanP_idx = 0;
+	//int fruits_idx = 0;
 	for (int i = 0; i < M->row_num; i++)
 	{
 		for (int j = 0; j < M->col_num; j++)
@@ -148,12 +154,15 @@ Map *create_map(const char *filepath)
 			case 'B':
 				Cages[cages_idx].cage_grid_x = j;
 				Cages[cages_idx].cage_grid_y = i; // default map and import is diff, if use default +1 else not
-				cages_idx++;
+				cages_idx++; //need separate!
 				break;
 			case '0':
 				pmanP[pmanP_idx].x = j;
 				pmanP[pmanP_idx].y = i;
 				pmanP_idx++;
+				break;
+			case 'E':
+				M->poison_num++;
 				break;
 			default:
 				break;
@@ -170,7 +179,8 @@ Map *create_map(const char *filepath)
 	// {
 	// 	game_log(" %d: (%d, %d)\n", i, Cages[i].cage_grid_x, Cages[i].cage_grid_y);
 	// }
-
+	//bonus load
+	//fruitImg = load_bitmap("Assets/fruit1.png");
 	return M;
 }
 
@@ -201,6 +211,11 @@ void delete_map(Map *M)
 		free(pmanP);
 		pmanP = NULL;
 	}
+	// if (fruits)
+	// {
+	// 	free(fruits);
+	// 	fruits = NULL;
+	// }
 	free(M); // Free the Map struct itself
 }
 
@@ -228,6 +243,8 @@ void draw_map(Map const *M)
 			case '.':
 				draw_bean(M, row, col);
 				break;
+			case 'E':
+				draw_poison(M,row,col);
 			default:
 				break;
 			}
@@ -305,6 +322,12 @@ static void draw_bean(const Map *M, const int row, const int col)
 static void draw_power_bean(const Map *M, const int row, const int col)
 {
 	al_draw_filled_circle(map_offset_x + col * block_width + block_width / 2.0, map_offset_y + row * block_height + block_height / 2.0, block_width / 3.0, al_map_rgb(234, 178, 38));
+}
+// bonus
+static void draw_poison(const Map *M, const int row, const int col)
+{
+	// draw
+	al_draw_filled_circle(map_offset_x + col * block_width + block_width / 2.0, map_offset_y + row * block_height + block_height / 2.0, block_width / 3.0, al_map_rgb(160, 32, 240)); //purple
 }
 
 bool is_wall_block(const Map *M, int index_x, int index_y)

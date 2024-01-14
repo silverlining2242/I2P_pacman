@@ -13,6 +13,7 @@ typedef struct Map
 	int beansNum;
 	int beansCount;
 	char **map;
+	int poison_num; //bonus
 } Map;
 
 typedef struct Cage_grid

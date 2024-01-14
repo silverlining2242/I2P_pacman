@@ -97,12 +97,6 @@ Ghost *ghost_create(int flag)
 void ghost_destory(Ghost *ghost)
 {
 	// $TODO-GC-memory: free ghost resource
-
-	/*
-		al_destory_bitmap(...);
-		...
-		free(ghost);
-	*/
 	// image
 	al_destroy_bitmap(ghost->dead_sprite);
 	al_destroy_bitmap(ghost->flee_sprite);

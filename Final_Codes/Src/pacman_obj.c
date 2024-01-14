@@ -31,7 +31,7 @@ extern bool CM_L;							 // #add
 extern bool P2block;					 // TODO-MC
 extern Pair_IntInt pman2Cordi; // TODO-MC
 extern int GHOST_NUM;					 // #add TODO-MC
-//extern int PMAN_NUM;					 // #add TODO-MC
+// extern int PMAN_NUM;					 // #add TODO-MC
 
 /* Declare static function */
 static bool pacman_movable(const Pacman *pacman, const Map *M, Directions targetDirec)
@@ -115,15 +115,20 @@ Pacman *pacman_create(int num) // change
 	if (num == 1) // Player 2
 	{
 		pman->move_sprite = load_bitmap("Assets/pacman2_move.png");
-		pman->block_sprite = load_bitmap("Assets/block1.png");
-		pman->cool_counter = al_create_timer(1.0f);
+		// pman->block_sprite = load_bitmap("Assets/block1.png");
+		// pman->cool_counter = al_create_timer(1.0f);
 	}
-	else
+	else // Player 1
 	{
 		pman->move_sprite = load_bitmap("Assets/pacman_move.png");
+		// pman->reverse_counter = al_create_timer(1.0f); // only for 1 Player
 	}
 	pman->die_sprite = load_bitmap("Assets/pacman_die.png");
 
+	pman->block_sprite = load_bitmap("Assets/block1.png"); // also load but not use (in order to free). Valid only for Player 2
+	pman->cool_counter = al_create_timer(1.0f);						 // also load but not use (in order to free). Valid only for Player 2
+	pman->reverse_counter = al_create_timer(1.0f);				 // also load but not use (in order to free). Valid only for Player 1
+	
 	return pman;
 }
 
@@ -133,10 +138,13 @@ void pacman_destroy(Pacman *pman)
 	// image
 	al_destroy_bitmap(pman->move_sprite);
 	al_destroy_bitmap(pman->die_sprite);
+	al_destroy_bitmap(pman->block_sprite);
 	// if (pman->block_sprite) //this has error #FIX
 	// 	al_destroy_bitmap(pman->block_sprite);
 	//  timer //TODO-MC
 	al_destroy_timer(pman->death_anim_counter);
+	al_destroy_timer(pman->cool_counter);
+	al_destroy_timer(pman->reverse_counter);
 	// if (pman->cool_counter) #FIX
 	// 	al_destroy_timer(pman->cool_counter);
 	// malloc
@@ -322,7 +330,7 @@ void pacman_move(Pacman *pacman, Map *M)
 	pacman->objData.facing = pacman->objData.preMove;
 	pacman->objData.moveCD = GAME_TICK_CD;
 }
-void pacman_eatItem(Pacman *pacman, const char Item)
+void pacman_eatItem(Pacman *pacman, const char Item) // for sound
 {
 	switch (Item)
 	{
@@ -343,7 +351,8 @@ void pacman_eatItem(Pacman *pacman, const char Item)
 			PACMAN_MOVESOUND_ID = play_bgm(PACMAN_POWERUPSOUND, effect_volume);
 		}
 		break;
-
+	case 'E':
+		break;
 	default:
 		break;
 	}
