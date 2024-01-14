@@ -25,11 +25,15 @@
 // inside this scene. They should all have the 'static' prefix.
 /*variables should have static!*/
 static RecArea Rectangle1;
+static RecArea Checkbox1;
+static RecArea Checkbox2;
 static bool editFlag = false;
 static int Inputidx = -1;
 /*to change extern variable */
 extern Play1Keys[4]; // #add in shared.c will be used in scene_game.c
 extern bool isValidPlay1Key;
+extern int PMAN_NUM; // check MC
+extern bool compete_mode;
 
 /* funcs copy from scene_menu.c*/
 static void init()
@@ -48,32 +52,55 @@ static void init()
 
 static void draw(void)
 {
+	// init to black
 	al_clear_to_color(al_map_rgb(0, 0, 0));
-	// set coordinat
-	const float offset_w = 30;
-	const float offset_h = 30;
-	// draw text
+	// // for position line check
+	// for (int i = 0; i < 800; i += 50)
+	// {
+	// 	for (int j = 0; j < 810; j += 50)
+	// 	{
+	// 		al_draw_rectangle(i, j, i + 50, j - 50, al_map_rgb(255, 255, 255), 2); // x y start x y end
+	// 	}
+	// }
+
+	// draw
 	al_draw_text(
 			menuFont, al_map_rgb(255, 255, 255),
-			offset_w, offset_h, // start position
+			50, 50, // start position
 			ALLEGRO_ALIGN_LEFT,
-			"Set Play 1 Key- U D L R:");
-	// draw rectangle and Assign RecArea
-	setRecArea(&Rectangle1, 400, 25, 150, 35);
-	al_draw_rectangle(400, 25, 550, 60, al_map_rgb(255, 255, 255), 3.7); // width 150
+			"SET PLAYER 1 KEY U-D-L-R:");
+	al_draw_text(menuFont, al_map_rgb(255, 255, 255), 120, 100, ALLEGRO_ALIGN_LEFT, "DO NOT SET REGULAR DIRECTION KEY");
 
-	// Draw the set keys
+	// draw rectangle and Assign RecArea
+	setRecArea(&Rectangle1, 120, 130, 300, 50);
+	al_draw_rectangle(120, 130, 420, 180, al_map_rgb(255, 255, 255), 3.5); // 120, 420
+
+	// Draw text input
 	for (int i = 0; i < 4; i++)
 	{
 		if (Play1Keys[i] != 0)
 		{
 			char *keyName = al_keycode_to_name(Play1Keys[i]);
-			al_draw_text(menuFont, al_map_rgb(255, 255, 255), 405 + (i * 36) + 5, 28, ALLEGRO_ALIGN_LEFT, keyName);
+			al_draw_text(menuFont, al_map_rgb(255, 255, 255), 128 + (i * 36), 140, ALLEGRO_ALIGN_LEFT, keyName); // 2, y
 		}
 	}
+	// Draw Multi mode on/ off
+	al_draw_text(menuFont, al_map_rgb(255, 255, 0), 50, 200, ALLEGRO_ALIGN_LEFT, "MUTIPLAYER MODE:");
+	al_draw_text(menuFont, al_map_rgb(255, 255, 0), 120, 270, ALLEGRO_ALIGN_LEFT, "COLLABORATE  KEY: / ");
+	al_draw_text(menuFont, al_map_rgb(255, 255, 0), 120, 340, ALLEGRO_ALIGN_LEFT, "COMPETE          KEY: SPACE");
+	al_draw_text(menuFont, al_map_rgb(255, 255, 0), 120, 400, ALLEGRO_ALIGN_LEFT, "PLAYER 2 KEY: REGULAR KEY");
+	// draw tick
+	setRecArea(&Checkbox1, 50, 250, 50, 50);
+	al_draw_rectangle(50, 250, 100, 300, al_map_rgb(255, 255, 0), 3.5); // x y start x y end
 
-	// draw image (load first)
-	// drawButton(btnSettings);
+	setRecArea(&Checkbox2, 50, 320, 50, 50);
+	al_draw_rectangle(50, 320, 100, 370, al_map_rgb(255, 255, 0), 3.5); // x y start x y end
+
+	// draw solid tick
+	if (PMAN_NUM == 2)
+		al_draw_filled_rectangle(55, 255, 95, 295, al_map_rgb(255, 255, 0)); // x y start x y end
+	if (compete_mode)
+		al_draw_filled_rectangle(55, 325, 95, 365, al_map_rgb(255, 255, 0)); // x y start x y end
 }
 
 static void on_mouse_move(int a, int mouse_x, int mouse_y, int f)
@@ -85,6 +112,8 @@ static void on_mouse_move(int a, int mouse_x, int mouse_y, int f)
 
 static void on_mouse_down()
 {
+	// check click region
+	// input cus key
 	if (pnt_in_rect(mouse_x, mouse_y, Rectangle1) && Inputidx < 4)
 	{
 		editFlag = true;
@@ -93,6 +122,23 @@ static void on_mouse_down()
 	else // click outside stop input
 	{
 		editFlag = false;
+	}
+	// checkbox
+	if (pnt_in_rect(mouse_x, mouse_y, Checkbox1)) //collab
+	{
+		if(PMAN_NUM==1 && compete_mode!=1) //switch on
+			PMAN_NUM =2;
+		else //off
+			PMAN_NUM =1;
+		game_log("click checkbox1 and switch PMANNUM: %d",PMAN_NUM);
+	}
+	if (pnt_in_rect(mouse_x, mouse_y, Checkbox2)) //compete
+	{
+		if(compete_mode==0 && PMAN_NUM !=2) //switch on
+			compete_mode =1;
+		else //off
+			compete_mode =0;
+		game_log("click checkbox2 and switch compete: %d ", compete_mode);
 	}
 }
 static void on_key_down(int keycode)
@@ -120,7 +166,7 @@ static void on_key_down(int keycode)
 	{
 		switch (keycode)
 		{
-		case ALLEGRO_KEY_P: 
+		case ALLEGRO_KEY_P:
 			game_change_scene(scene_menu_create());
 			break;
 		default:
@@ -137,7 +183,7 @@ static void destroy() // copy from scene_menu.c
 
 	for (int i = 0; i < 4; i++) // before changing scene, we can update valid
 	{
-		if (Play1Keys[i]!=0)
+		if (Play1Keys[i] != 0)
 		{
 			isValidPlay1Key = true;
 		}

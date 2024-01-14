@@ -139,7 +139,7 @@ static void ghost_move_script_STOP(Ghost *ghost, Map *M) // #add
 }
 static void ghost_move_script_CONTROL(Ghost *ghost, Map *M) // #add
 {
-	game_log("ghost_move_script_CONTROL executed");
+	//game_log("ghost_move_script_CONTROL executed");
 	// if control by user, the ghost_NextMove() func is called by KEYBOARD, not by script
 	// there is new nextTryMove generated after triggered by KEYBOARD
 	// ghost_move_script_random do:

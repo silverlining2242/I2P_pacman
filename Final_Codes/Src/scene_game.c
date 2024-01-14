@@ -15,7 +15,7 @@
 // Just modify the GHOST_NUM to 1
 // #define GHOST_NUM 4
 int GHOST_NUM = 4;
-int PMAN_NUM = 1;
+int PMAN_NUM = 1; //TODO-MC
 // $TODO-GC-ghost: create a least FOUR ghost!
 /* global variables*/
 extern const uint32_t GAME_TICK_CD;
@@ -49,7 +49,7 @@ bool wasCM_S = false; // #add to improve efficiency to avoid reset normal when C
 bool CM_L = false;
 bool P2block = false;		// TODO-MC
 Pair_IntInt pman2Cordi; // TODO-MC
-bool compete_mode = true; //TODO-MC2
+bool compete_mode = false; //TODO-MC2
 int compete_idx = 0; //TODO-MC2
 
 /* Declare static function prototypes */
@@ -529,13 +529,21 @@ static void destroy(void)
 	// malloc
 	// free(pman); // don't double free!! comment out
 	// free(basic_map);
-	free(ghosts);
-	free(pmans);
-	free(beans_text);
-	free(cool_text);
+	//below need to #FIX
+	// if(ghosts) it's free each, we need to free 2d? #FIX
+	// 	free(ghosts);
+	// if(pmans)
+	// 	free(pmans);
+	if(beans_text)
+		free(beans_text);
+	if(cool_text)
+		free(cool_text);
+	// free(ghosts);
+	// free(pmans);
+	// free(beans_text);
+	// free(cool_text);
 	// check
 	game_log("scene_game.c destroy() func called\n");
-
 	for (int i = 0; i < 4; i++)
 	{
 		game_log("%d Play1Keys: %d", i, Play1Keys[i]);
