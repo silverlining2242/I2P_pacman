@@ -15,7 +15,7 @@
 // Just modify the GHOST_NUM to 1
 // #define GHOST_NUM 4
 int GHOST_NUM = 4;
-int PMAN_NUM = 2;
+int PMAN_NUM = 1;
 // $TODO-GC-ghost: create a least FOUR ghost!
 /* global variables*/
 extern const uint32_t GAME_TICK_CD;
@@ -49,6 +49,8 @@ bool wasCM_S = false; // #add to improve efficiency to avoid reset normal when C
 bool CM_L = false;
 bool P2block = false;		// TODO-MC
 Pair_IntInt pman2Cordi; // TODO-MC
+bool compete_mode = true;
+int compete_idx = 0;
 
 /* Declare static function prototypes */
 static void init(void);
@@ -292,19 +294,32 @@ static void status_update(void)
 		CM_L = false;
 	}
 	// Player 2: status update #TODO-MC
-	if (P2block)
+	if (PMAN_NUM == 2)
 	{
-		PMAN2COOL_TICK = al_get_timer_count(pmans[1]->cool_counter);
-		if (PMAN2COOL_TICK >= pman2_cool_duration)
+		if (P2block)
 		{
-			game_log("cool tick: %d exceed %d\n", PMAN2COOL_TICK, pman2_cool_duration);
+			PMAN2COOL_TICK = al_get_timer_count(pmans[1]->cool_counter);
+			if (PMAN2COOL_TICK >= pman2_cool_duration)
+			{
+				game_log("cool tick: %d exceed %d\n", PMAN2COOL_TICK, pman2_cool_duration);
+				set_cool_timer_pman2(pmans[1], 0);
+				P2block = false; // reset
+			}
+		}
+		else
+		{
 			set_cool_timer_pman2(pmans[1], 0);
-			P2block = false; // reset
 		}
 	}
-	else
+	// TODO-MC2 compete mode, change ghost status
+	if (compete_mode)
 	{
-		set_cool_timer_pman2(pmans[1], 0);
+		ghost_toggle_CONTROL(ghosts[compete_idx], true);
+		for(int i = 0; i <GHOST_NUM; i++)
+		{
+			if(i!=compete_idx) //rest ghost is free
+				ghost_toggle_CONTROL(ghosts[i], false);
+		}
 	}
 
 	// draw pmanArea for check collide
@@ -430,7 +445,7 @@ static void draw(void)
 			10, 10, 0,
 			beans_text);
 	// TODO-MC: draw cool down
-	if(P2block)
+	if (P2block)
 	{
 		cool_text = (char *)malloc(sizeof(char) * 30);
 		sprintf(cool_text, "Cool left: %d", pman2_cool_duration - PMAN2COOL_TICK);
@@ -451,7 +466,8 @@ static void draw(void)
 	draw_map(basic_map);
 
 	pacman_draw(pmans[0]);
-	pacman_draw2(pmans[1]); // TODO-MC
+	if (PMAN_NUM == 2)
+		pacman_draw2(pmans[1]); // TODO-MC
 	if (game_over)
 		return;
 	// no drawing below when game over
@@ -605,42 +621,77 @@ static void on_key_down(int key_code)
 		}
 	}
 }
-static void on_key_down2(int key_code) // #TODO-MC
+static void on_key_down2(int key_code) // #TODO-MC, TODO-MC2
 {
-	if (P2block)
+	if (PMAN_NUM == 2) // (pmans[1] is not access)if exist then active player 2 keyboard #change
 	{
-		if (ALLEGRO_KEY_SLASH == key_code)
+		game_log("pmans[1] has value");
+		if (P2block)
 		{
-			set_cool_timer_pman2(pmans[1], 1); // mode 1 to init cool down
-			P2block = false;
+			if (ALLEGRO_KEY_SLASH == key_code)
+			{
+				set_cool_timer_pman2(pmans[1], 1); // mode 1 to init cool down
+				P2block = false;
+			}
+			else
+			{
+				return;
+			}
 		}
 		else
 		{
-			return;
+			switch (key_code)
+			{
+			case ALLEGRO_KEY_UP:
+				pacman_NextMove(pmans[1], UP);
+				break;
+			case ALLEGRO_KEY_LEFT:
+				pacman_NextMove(pmans[1], LEFT);
+				break;
+			case ALLEGRO_KEY_DOWN:
+				pacman_NextMove(pmans[1], DOWN);
+				break;
+			case ALLEGRO_KEY_RIGHT:
+				pacman_NextMove(pmans[1], RIGHT);
+				break;
+			case ALLEGRO_KEY_SLASH:
+				set_cool_timer_pman2(pmans[1], 1);				 // mode 1 to init cool down
+				pman2Cordi = get_pman2_position(pmans[1]); // TODO-MC
+				if (!P2block)
+					P2block = !P2block;
+				printf("Player2 switch block, last coordinate(%d,%d)\n", pman2Cordi.x, pman2Cordi.y);
+				break;
+			case ALLEGRO_KEY_G:
+				debug_mode = !debug_mode;
+				break;
+			default:
+				break;
+			}
 		}
 	}
-	else
+	if (compete_mode) // TODO-MC2
 	{
 		switch (key_code)
 		{
 		case ALLEGRO_KEY_UP:
-			pacman_NextMove(pmans[1], UP);
+			// pacman_NextMove(pmans[1], UP);
+			printf("Player2 press UP\n");
 			break;
 		case ALLEGRO_KEY_LEFT:
-			pacman_NextMove(pmans[1], LEFT);
+			// pacman_NextMove(pmans[1], LEFT);
+			printf("Player2 press Left\n");
 			break;
 		case ALLEGRO_KEY_DOWN:
-			pacman_NextMove(pmans[1], DOWN);
+			// pacman_NextMove(pmans[1], DOWN);
+			printf("Player2 press Down\n");
 			break;
 		case ALLEGRO_KEY_RIGHT:
-			pacman_NextMove(pmans[1], RIGHT);
+			// pacman_NextMove(pmans[1], RIGHT);
+			printf("Player2 press Right\n");
 			break;
-		case ALLEGRO_KEY_SLASH:
-			set_cool_timer_pman2(pmans[1], 1);				 // mode 1 to init cool down
-			pman2Cordi = get_pman2_position(pmans[1]); // TODO-MC
-			if (!P2block)
-				P2block = !P2block;
-			printf("Player2 switch block, last coordinate(%d,%d)\n", pman2Cordi.x, pman2Cordi.y);
+		case ALLEGRO_KEY_SPACE:
+			compete_idx = (compete_idx + 1 ) % 4;
+			printf("Player2 switch next ghost %d\n", compete_idx);
 			break;
 		case ALLEGRO_KEY_G:
 			debug_mode = !debug_mode;
@@ -663,7 +714,8 @@ static void render_init_screen(void)
 	draw_map(basic_map);
 
 	pacman_draw(pmans[0]);
-	pacman_draw2(pmans[1]); // #TODO-MC
+	if (PMAN_NUM == 2)
+		pacman_draw2(pmans[1]); // #TODO-MC
 	for (int i = 0; i < GHOST_NUM; i++)
 	{
 		ghost_draw(ghosts[i]);

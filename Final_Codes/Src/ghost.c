@@ -384,3 +384,17 @@ void ghost_toggle_STOP(Ghost *ghost, bool setSTOP) // #add
 		ghost->speed = 2;
 	}
 }
+void ghost_toggle_CONTROL(Ghost *ghost, bool setCONTROL) // #add
+{
+	// TODO-MC2
+	if (setCONTROL) 
+	{
+		ghost->status = CONTROLLED;
+		ghost->speed = 2;
+	}
+	else
+	{
+		ghost->status = FREEDOM;
+		ghost->speed = 2;
+	}
+}

@@ -31,6 +31,7 @@ extern bool CM_L;							 // #add
 extern bool P2block;					 // TODO-MC
 extern Pair_IntInt pman2Cordi; // TODO-MC
 extern int GHOST_NUM;					 // #add TODO-MC
+//extern int PMAN_NUM;					 // #add TODO-MC
 
 /* Declare static function */
 static bool pacman_movable(const Pacman *pacman, const Map *M, Directions targetDirec)

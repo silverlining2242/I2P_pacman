@@ -16,12 +16,13 @@ typedef struct Map Map;
 
 typedef enum
 {
-	BLOCKED, // stay inside the ghost room
-	GO_OUT,	 // going out the ghost room
-	FREEDOM, // free at the map
-	GO_IN,	 // going back to the ghost room
-	FLEE,		 // pacman powered up
-	STOP		 // #add ghost status
+	BLOCKED,	 // stay inside the ghost room
+	GO_OUT,		 // going out the ghost room
+	FREEDOM,	 // free at the map
+	GO_IN,		 // going back to the ghost room
+	FLEE,			 // pacman powered up
+	STOP,			 // #add ghost status
+	CONTROLLED // #add ghost status TODO-MC2
 } GhostStatus;
 
 typedef enum
@@ -55,8 +56,9 @@ bool ghost_movable(const Ghost *ghost, const Map *M, Directions targetDirec, boo
 /* check if the direction is ok to move_script in; if room = true, then room will be treat as not able to move_script in */
 
 void ghost_toggle_FLEE(Ghost *ghosts, bool setFLEE);
-void ghost_toggle_GOIN(Ghost *ghosts, bool setFLEE); // #add
-void ghost_toggle_STOP(Ghost *ghosts, bool setFLEE); // #add
+void ghost_toggle_GOIN(Ghost *ghosts, bool setFLEE);			// #add
+void ghost_toggle_STOP(Ghost *ghosts, bool setFLEE);			// #add
+void ghost_toggle_CONTROL(Ghost *ghost, bool setCONTROL); // #TODO-MC2
 void ghost_collided(Ghost *ghost);
 void ghost_move_script_random(Ghost *ghost, Map *M, Pacman *pacman);
 void ghost_move_script_shortest_path(Ghost *ghost, Map *M, Pacman *pacman);

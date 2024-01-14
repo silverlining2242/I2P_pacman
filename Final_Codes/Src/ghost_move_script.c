@@ -20,6 +20,7 @@ static void ghost_move_script_GO_IN(Ghost *ghost, Map *M);
 static void ghost_move_script_GO_OUT(Ghost *ghost, Map *M);
 static void ghost_move_script_FLEE(Ghost *ghost, Map *M, const Pacman *const pacman);
 static void ghost_move_script_STOP(Ghost *ghost, Map *M); // #add
+static void ghost_move_script_CONTROL(Ghost *ghost, Map *M); // #add TODO-MC2
 
 static void ghost_move_script_FREEDOM_random(Ghost *ghost, Map *M)
 {
@@ -134,6 +135,12 @@ static void ghost_move_script_STOP(Ghost *ghost, Map *M) // #add
 	ghost->objData.nextTryMove = NONE;
 	ghost_NextMove(ghost, ghost->objData.nextTryMove);
 }
+static void ghost_move_script_CONTROL(Ghost *ghost, Map *M) // #add
+{
+	game_log("ghost_move_script_CONTROL executed");
+	ghost->objData.nextTryMove = NONE;
+	ghost_NextMove(ghost, ghost->objData.nextTryMove);
+}
 static void ghost_move_script_FLEE(Ghost *ghost, Map *M, const Pacman *const pacman)
 {
 	// $TODO-PB: escape from pacman
@@ -238,6 +245,9 @@ void ghost_move_script_random(Ghost *ghost, Map *M, Pacman *pacman)
 		break;
 	case STOP:
 		ghost_move_script_STOP(ghost, M);
+		break;
+	case CONTROLLED:
+		ghost_move_script_CONTROL(ghost, M);
 		break;
 	default:
 		break;
