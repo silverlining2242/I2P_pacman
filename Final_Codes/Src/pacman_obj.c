@@ -128,7 +128,7 @@ Pacman *pacman_create(int num) // change
 	pman->block_sprite = load_bitmap("Assets/block1.png"); // also load but not use (in order to free). Valid only for Player 2
 	pman->cool_counter = al_create_timer(1.0f);						 // also load but not use (in order to free). Valid only for Player 2
 	pman->reverse_counter = al_create_timer(1.0f);				 // also load but not use (in order to free). Valid only for Player 1
-	
+
 	return pman;
 }
 
@@ -221,8 +221,8 @@ void pacman_draw(Pacman *pman)
 		// refer al_get_timer_count and al_draw_scaled_bitmap. Suggestion frame rate: 8fps.
 		// in struct: pman->death_anim_counter = al_create_timer(1.0f / 8.0f); tick time each 1/8 s (return timer object)
 
-		offset = ((al_get_timer_count(pman->death_anim_counter)) % 12) * 16; // 16 * 192(192/16 = 12)
-																																				 // offset: (iterate idx in die_sprite image each 1/8 s) * 16 (each is 16* 16)
+		offset = ((al_get_timer_count(pman->death_anim_counter) ) % 12) * 16; // 16 * 192(192/16 = 12) //#FIX + 1
+																																						 // offset: (iterate idx in die_sprite image each 1/8 s) * 16 (each is 16* 16)
 
 		al_draw_scaled_bitmap(pman->die_sprite,
 													offset, 0,																																	// sx, sy
@@ -293,7 +293,7 @@ void pacman_draw2(Pacman *pman) // #TODO-MC
 													draw_region, draw_region, 0);
 	}
 }
-void pacman_move(Pacman *pacman, Map *M)
+void pacman_move(Pacman *pacman, Map *M, int idx) // TODO-MC #change
 {
 	if (!movetime(pacman->speed))
 		return;
@@ -302,7 +302,12 @@ void pacman_move(Pacman *pacman, Map *M)
 
 	int probe_x = pacman->objData.Coord.x, probe_y = pacman->objData.Coord.y;
 	if (pacman_movable(pacman, M, pacman->objData.nextTryMove))
+	{
 		pacman->objData.preMove = pacman->objData.nextTryMove;
+		if(idx==1)
+			pacman->objData.nextTryMove = NONE; //Player 2 need to press key each time
+	}
+
 	else if (!pacman_movable(pacman, M, pacman->objData.preMove))
 		return;
 

@@ -216,7 +216,7 @@ static void ghost_move_script_FLEE(Ghost *ghost, Map *M, const Pacman *const pac
 		{ // for the dead end case, move original back
 			ghost_NextMove(ghost, proba[0]);
 		}
-		else
+		else if (cnt ==1) //#FIX?
 		{
 			ghost_NextMove(ghost, counter_one);
 		}

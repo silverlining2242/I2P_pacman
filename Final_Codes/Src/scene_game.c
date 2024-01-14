@@ -10,6 +10,7 @@
 #include "pacman_obj.h"
 #include "ghost.h"
 #include "map.h"
+#include "scene_success.h"
 
 // TODO-HACKATHON 2-0: Create one ghost
 // Just modify the GHOST_NUM to 1
@@ -81,7 +82,7 @@ static void init(void)
 	// create map
 	basic_map = create_map(NULL);
 	// $TODO-GC-read_txt: Create map from .txt file so that you can design your own map!!
-	// basic_map = create_map("Assets/map_nthu.txt"); //*okay
+	//basic_map = create_map("Assets/map_new2.txt"); //*okay
 	if (!basic_map)
 	{
 		game_abort("error on creating map");
@@ -437,7 +438,7 @@ static void update(void)
 	// $TODO-PB: add all beans finish game
 	if (game_main_Score >= basic_map->beansNum)
 	{
-		game_change_scene(scene_menu_create());
+		game_change_scene(scene_success_create());
 		return;
 	}
 	// regular game update logic
@@ -447,7 +448,7 @@ static void update(void)
 	// pacman_move(pman, basic_map);
 	// pacman_move(pman2, basic_map); // TODO-MC
 	for (int i = 0; i < PMAN_NUM; i++)
-		pacman_move(pmans[i], basic_map);
+		pacman_move(pmans[i], basic_map, i);
 
 	for (int i = 0; i < GHOST_NUM; i++)
 		ghosts[i]->move_script(ghosts[i], basic_map, pmans[0]);

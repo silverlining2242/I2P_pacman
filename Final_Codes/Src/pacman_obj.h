@@ -36,7 +36,7 @@ void pacman_destroy(Pacman *pman);
 
 void pacman_draw(Pacman *pacman);
 void pacman_draw2(Pacman *pacman);
-void pacman_move(Pacman *pacman, Map *M);
+void pacman_move(Pacman *pacman, Map *M, int idx);
 void pacman_eatItem(Pacman *pacman, const char Item);
 
 void pacman_NextMove(Pacman *pacman, Directions next);
