@@ -1,7 +1,7 @@
 # Game Structure
 
 ## Basic feature
-![image](https://hackmd.io/_uploads/ByLLNWHwC.jpg =400x) 
+<img src="https://github.com/silverlining2242/I2P_pacman/blob/master/Final_Codes/Assets/readme-1.jpg" width="300"><img src="docs/imgs/preview.jpg" width="260">
 * Mechanism:
     - Pacman eats Beans, count shown on the corner display
     - Pacman eats PowerBeans(PB) pacman can eat ghosts
@@ -10,7 +10,6 @@
 * Implementation:
     1. Animation of movement and disappear of pacman and ghost
 to Synch fps, speed, tick, frame
-![image](https://hackmd.io/_uploads/ryZVIbBvR.jpg =100x)
     2. Pacman and Ghost cannot pass through the wall (movable func) 
     3. PB mode last for 10s: Pacman can eat ghosts after eating PB 
     4. ghost->status and ghost_move_script
@@ -23,7 +22,8 @@ to Synch fps, speed, tick, frame
     7. Dynamic Memory allocation and release(w/o memory leak)
 
 ## Advanced feature
-![image](https://hackmd.io/_uploads/rJQY0WSvC.jpg =300x) ![image](https://hackmd.io/_uploads/r1WwyfBvA.jpg =300x)
+<img src="https://github.com/silverlining2242/I2P_pacman/blob/master/Final_Codes/Assets/readme-2.jpg" width="500">
+
 1. can customieze 1st pacman control key (text input shown on screen)
     default 1st pacman KEY is WSAD (can be customized)
     default 2nd pacman KEY is direction keys(cannot customized)
@@ -47,9 +47,6 @@ to Synch fps, speed, tick, frame
 
 
 # Allegro 5 Pacman Game Template
-
-![preview](docs/imgs/preview.jpg)
-
 Related Links:
 - [Exercises](/Exercises)
 - [Exercises step-by-step video](https://youtu.be/Araij6j6QME)
@@ -173,61 +170,43 @@ Follow the steps [here](docs/README.md).
 
   - Add `#define _CRT_SECURE_NO_DEPRECATE`/`#define _CRT_SECURE_NO_WARNINGS` at the top of your `main.c` file.
 
-  - Or you can set it in the Project Settings.
-
-    ![](docs/imgs/crt-secure-no-warnings.png)
+  - Or you can set it in the Project Settings.  
+    <img src="docs/imgs/crt-secure-no-warnings.png" width="200">
 
 - Cannot compile on Visual Studio. (`unresolved external symbol`...)
 
   - Remember to check `Support C++ Desktop` when installing.
 
-    ![](docs/imgs/install-cpp-support.png)
+    <img src="docs/imgs/install-cpp-support.png" width="200">
 
   - When setting the configuration of Allegro5 plugins, make sure to set in `All Configurations` and `All Platforms`.
 
-    ![](docs/imgs/visual-studio-all.png)
+    <img src="docs/imgs/visual-studio-all.png" width="200">
 
   - When Visual Studio complains the Windows SDK Version / Platform Toolset is not found, choose any downloaded `Windows SDK Version` and any `Platform Toolset`. (Make sure the options you chose are installed in your computer)
-
-    ![](docs/imgs/windows-sdk-version.png)
-
-    ![](docs/imgs/platform-toolset.png)
-
+    <img src="docs/imgs/windows-sdk-version.png" width="200">
+    <img src="docs/imgs/platform-toolset.png" width="200">
 - Cannot compile on Code::Blocks.
-
-  For Code::Blocks you should create a project following the tutorial above, and set the project settings to allow C++11.
-
-  ![](docs/imgs/faq-cb-cpp11.png)
-
+  For Code::Blocks you should create a project following the tutorial above, and set the project settings to allow C++11.  
+  <img src="docs/imgs/faq-cb-cpp11.png" width="200">
   The settings are almost the same in other IDEs.
-
   For `'abs(float&)' is ambiguous` you can change `abs` to `fabs`.
-
 - File `allegro-5.0.10-monolith-mt-debug.dll` is missing in Code::Blocks
-
   Find the file `allegro/bin/allegro-5.0.10-monolith-mt-debug.dll` located inside the unzipped library folder.
-
   Copy it to your project folder under `bin\Debug`. If these folders don't exist, you can create them by yourself, or simply compile and run the code, your IDE will create them for you.
-
 - `task_2_ans.c` compile error in Code::Blocks.
-
   ```
   error: could not convert 'al_init_font_addon()' from 'void' to 'bool'
   ```
-
   Change
-
   ```c
   if (!al_init_font_addon())
       game_abort(...);
   ```
-
   to
-
   ```c
   al_init_font_addon();
   ```
-
 - Header not found using the new version Allegro5.2 in Dev-C++
 
   `fatal error: allegro5/allegro.h: No such file or directory`
@@ -260,11 +239,11 @@ Follow the steps [here](docs/README.md).
 
   For Code::Blocks, set the build target type to `GUI application`.
 
-  ![](docs/imgs/faq-cb-gui.png)
+  <img src="docs/imgs/faq-cb-gui.png" width="200">
 
   For Visual Studio, set the `Subsystem` to `Windows (/SUBSYSTEM:WINDOWS)`.
 
-  ![](docs/imgs/subsystem-windows.png)
+  <img src="docs/imgs/subsystem-windows.png" width="200">
 
   For other IDEs there are also such settings.
 
@@ -272,7 +251,7 @@ Follow the steps [here](docs/README.md).
 
   Right-click a project and `Set as StartUp Project` and recompile.
 
-  ![](docs/imgs/default-startup.png)
+  <img src="docs/imgs/default-startup.png" width="200">
 
 ### Installation Issue on Mac OS
 
@@ -293,12 +272,10 @@ Follow the steps [here](docs/README.md).
 - Cannot find resource files (when running `task_2_ans.c`)
 
   You should drag your files (`pirulen.ttf`, `32largebugs.jpg`) into your project.
-
-  ![](docs/imgs/faq-mac-def.png)
-  ![](docs/imgs/faq-mac-files.png)
-  ![](docs/imgs/faq-mac-drag.png)
-  ![](docs/imgs/faq-mac-copy.png)
-  ![](docs/imgs/faq-mac-fin.png)
+  
+  <img src="docs/imgs/faq-mac-def.png" width="200"><img src="docs/imgs/faq-mac-files.png" width="200">
+  <img src="docs/imgs/faq-mac-drag.png" width="200"><img src="docs/imgs/faq-mac-copy.png" width="200">
+  <img src="docs/imgs/faq-mac-fin.png" width="200">
 
 - Redefinition of ...
 
