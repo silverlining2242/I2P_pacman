@@ -1,3 +1,51 @@
+# Game Structure
+
+## Basic feature
+![image](https://hackmd.io/_uploads/ByLLNWHwC.jpg =400x) 
+* Mechanism:
+    - Pacman eats Beans, count shown on the corner display
+    - Pacman eats PowerBeans(PB) pacman can eat ghosts
+    - Game Successed: if all beans are eaten
+        Game Failed: if pacman is caughted by the ghosts 
+* Implementation:
+    1. Animation of movement and disappear of pacman and ghost
+to Synch fps, speed, tick, frame
+![image](https://hackmd.io/_uploads/ryZVIbBvR.jpg =100x)
+    2. Pacman and Ghost cannot pass through the wall (movable func) 
+    3. PB mode last for 10s: Pacman can eat ghosts after eating PB 
+    4. ghost->status and ghost_move_script
+    - FREEDOM (normal status) - random(move freely, w/o joggling) or shortest_path(ghosts chase pacman with shortest path)
+    To change the difficulty of game via modifing this in code, e.g 1/4 is shortest the other is random
+    - FLEE: (when in PB mode): if pacman move, ghosts go opposite, if not go random
+    - GO_IN (after pacman eats ghosts): ghosts must go back to cage)
+    5. user can import the customized map of txt file and load to the code (no GUI, need changing code )
+    6. Scene changing: Menu, Game, Settings
+    7. Dynamic Memory allocation and release(w/o memory leak)
+
+## Advanced feature
+![image](https://hackmd.io/_uploads/rJQY0WSvC.jpg =300x) ![image](https://hackmd.io/_uploads/r1WwyfBvA.jpg =300x)
+1. can customieze 1st pacman control key (text input shown on screen)
+    default 1st pacman KEY is WSAD (can be customized)
+    default 2nd pacman KEY is direction keys(cannot customized)
+2. Purple Bean:
+    After pacman eat, it has reversely key contorl that last 10s
+2. Collaborate Mode:
+    create 2nd pacman (white): cannot eat bean, but can create wall(press '/') to block the ghosts and assist 1st pacman (yellow)
+3. Competition Mode:
+    2nd player can control ghosts and use direction day to chase 1st player's pacman. Press 'SPACE' can switch to next ghost.
+
+
+4. Cheat Mode:
+    - player 1 press 'C': can turn on "Cheat Mode", in Cheat Mode, press 'S' ghosts stop moving, press 'K' ghosts go back to cage, press 'L' pacman can pass through the wall
+    - New: ghost->status and ghost_move_script
+    STOP(S) - when press S
+    CONTROLLED - when press K or L 
+
+
+
+
+
+
 # Allegro 5 Pacman Game Template
 
 ![preview](docs/imgs/preview.jpg)
